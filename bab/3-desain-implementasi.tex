@@ -1,14 +1,29 @@
-\chapter{DESAIN DAN IMPLEMENTASI}
-\label{chap:desainimplementasi}
+\chapter{DESIGN AND IMPLEMENTATION}
+\label{chap:desainandimplementation}
 
 % Ubah bagian-bagian berikut dengan isi dari desain dan implementasi
 
 Penelitian ini dilaksanakan sesuai \lipsum[1][1-5]
 
-\section{Deskripsi Sistem}
-\label{sec:deskripsisistem}
+\section{Make New Dataset}
+\label{sec:makenewdataset}
 
-Sistem akan dibuat dengan \lipsum[1-2]
+This new dataset is a merge of KimbRo's Humanoid Robot Pose dataset and Ichiro's dataset. NimbRo's dataset contains both single and multiple robots to
+simulate RoboCup's real conditions. They also gathered from RoboCup Humanoid League YouTube videos, their own internal videos, and ROS bags. 
+Overall, their dataset has over 1.5k images that come from 23 videos with around 2.3k robot instances. These images include teen and adult-sized robots and contain more than ten different robot types \parencite{amini2021}.
+However, the robots in Ichiro's dataset are only kid-sized and come in single or maximum two-robot configurations. The images in our dataset come from videos that are taken in our lab. 
+Then we split up those videos into multiple images and we pick not blurred videos.
+After merging, the new dataset has approximately 2.5k images.
+About 20 percent of the dataset was exclusively used for testing. Alse, the testing images were collected
+from different videos than the training videos.
+
+When it comes to annotation tools, there are a lot of choices out there including offline and online tools. We have tried some of them like Dataloop, V7labs, or Supervisely which is recommended by NimbRo.
+However, when we tried to export the dataset into COCO format, it failed (e.g. can not import it or it can be imported but the JSON result in the annotation section is none). So, we decided to use a coco-annotator,
+a web-based image annotation tool designed for versatility and efficiently labeling images to create training data. Regarding the number of keypoints in each robot, we followed NimbRo's dataset.
+There are six keypoints including head, trunk, hands, and feet. We stick to that idea because we want to try the model's performance and inference time with fewer keypoints first and if we are confident enough, we will increase the number of keypoints later.
+
+\section{Training Pose Estimation for Humanoid Robot}
+\label{sec:trainingrobot}
 
 \section{Implementasi Alat
   \label{sec:implementasi alat}}
