@@ -14,7 +14,7 @@ Overall, their dataset has over 1.5k images that come from 23 videos with around
 However, the robots in Ichiro's dataset are only kid-sized and come in single or maximum two-robot configurations. The images in our dataset come from videos that are taken in our lab. 
 Then we split up those videos into multiple images and we pick not blurred videos.
 Before merging, we need to fix NimbRo's dataset format first. This is because after we visualized some of their data, we found that the bounding boxes in \emph{annotations} part were misplaced (the width and height were swapped).
-After we refine their dataset format and merge them with our dataset, the newly created dataset has approximately 2.5k images.
+After we refine their dataset format and merge them with our dataset, the newly created dataset has approximately 2.1k images.
 About 20 percent of the dataset was used for scoring and validating.
 
 When it comes to annotation tools, there are a lot of choices out there including offline and online tools. We have tried some of them like Dataloop, V7labs, or Supervisely which is recommended by NimbRo.
@@ -58,19 +58,7 @@ python and many libraries preinstalled with following allocated resources explai
 \end{longtable}
 
 \subsection{NimbRo's Model}
-\label{subsec:nimbro-model}
-
-There are three Pose Estimation Models for humanoid robots that we retrained with the new dataset. All of them used bottom-up approaches. The first one is NimbRo's model,
-they chose to use a similar architecture with NimbRo-Net and NimbRo-Net2 because it had such positive outcomes. Their model is an single-stage encoder-decoder network which takes an RGB image of
-size \emph{w x h}. The model predicts heatmaps of both keypoints and limbs for scale 1/4 and only
-heatmaps of keypoints for scale 1/2, where each scale is supervised with an intermediate loss \parencite{amini2021}. The full network architecture is depicted in Figure \ref{fig:nimbro-model-architecture}.
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[scale=0.9]{gambar/nimbro-architecture.png}
-  \caption{NimbRo's model architecture}
-  \label{fig:nimbro-model-architecture}
-\end{figure}
+\label{subsec:trainingnimbromodel}
 
 The hyperparameters that are used to train NimbRo's model followed the description in their paper.
 This model is trained using the AdamW optimizer with a learning rate of 10\textsuperscript{-4} ,
@@ -79,22 +67,26 @@ Note that the encoder is initialized by pre-trained ResNet weights on ImageNet.
 We also use data augmentation that includes random horizontal flip, random
 rotation, random scaling, and random translation during training \parencite{amini2021}.
 
+The main program for training is already made by them named \emph{main.py}, we just need to run it on Jupyter Notebook file or Terminal and adjust the arguments for our needs
+as seen in Command \ref{lst:trainingnimbro}. The value of argument \emph{config} is a file where we store all the hyperparameters, File \ref{lst:confignimbro} is one of the example.
+Second argument is a directory path where we save training result and last argument is a directory path where the dataset takes place.
+
+\begin{lstlisting}[
+  language={},
+  caption={Training NimbRo command.},
+  label={lst:trainingnimbro}
+]
+python src/main.py --config experiments/train_merge_2.yaml --output_dir ichiro_nimbro_merge --dataset_path dataset/hrp/
+\end{lstlisting}
+
+\lstinputlisting[
+  language={},
+  caption={Example YAML file config for NimbRo's Training.},
+  label={lst:confignimbro}
+]{files/train_nimbro.yaml}
+
 \subsection{YOLO-pose}
-\label{subsec:YOLO-pose}
-
-Another model that we trained with new dataset is YOLO-pose. Although this architecture is intended for humans, but it may be used for humanoid robot too, as explained in Section \ref{subsec:humanoidrobotposeestimation}.
-YOLO-pose is a single-shot approach like other bottom-up approaches. However, it doesn't use heatmaps. Rather, it associates all keypoints of a person with anchors. It is
-based on YOLOv5 object detection framework and can be extended to other frameworks as well. Figure \ref{fig:YOLO-pose-architecture} illustrates the overall architecture with keypoint
-heads for pose estimation. The Input image is passed through darknetcsp backbone that generates feature maps at
-various scales {P3, P4, P5, P6}. PAnet is used for fusing these feature maps across multiple scales and the output is fed to detection
-heads. Finally each detection head branches into box head and keypoint head \parencite{maji2022yolopose}.
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[scale=1]{gambar/yolo-architecture.png}
-  \caption{YOLO-pose architecture.}
-  \label{fig:YOLO-pose-architecture}
-\end{figure}
+\label{subsec:trainingyolopose}
 
 Before we jumped into training process, we must change format of our newly dataset from COCO to YOLO. Differ from COCO format, YOLO format give keypoint confidence or visibility flag 2 for either visible or occluded keypoint
 and if it is outside the field of view, the value is set to zero. However, COCO format defined visibility flag as v=0: not labeled,  v=1: labeled but not visible, and v=2: labeled and visible. So, we change the definition of
@@ -113,6 +105,22 @@ The hyperparameters to train YOLO-pose followed the description in their GitHub 
 We use SGD optimizer with a cosine scheduler. The base learning rate is set to 10\textsuperscript{-2}, batch size 16,
 and weight decay of 5\textsuperscript{-4} for total 150 epochs. There are also data augmentation like random scale ([0.5, 1.5]),
 random translation [-10, 10], random flip with probability 0.5, mosaic augmentation with probability 1, and various color augmentations.
+It is the same with Section \ref{subsec:trainingnimbromodel}, actually, the main program for training has been provided, but the program is intended for humans with 17 keypoints.
+If we run it directly with our dataset with 6 keypoints, an error will be raised. Therefore, a little bit of code needs to be changed to make the training process can be run.
+After that, we can run Command \ref{lst:trainingyolo}. We will not go into all the arguments, only some of them. 
+A file containing the dataset path, number of keypoint, and class name is on the first argument. The second argument explains the full network architecture of YOLO-pose and 
+argument \emph{hyp} is a file contains all the hyperparameters that are used.
+
+\begin{lstlisting}[
+  language={},
+  caption={Training YOLO-pose command.},
+  label={lst:trainingyolo}
+]
+python train.py --data data/robot_kpts.yaml --cfg cfg/yolov7-w6-robot-pose.yaml --weights weights/yolov7-w6-pose.pt --batch-size 8 --kpt-label --device 0 --name yolov7-pose-merge --hyp data/hyp.pose.yaml --epochs 150
+\end{lstlisting}
+
+\subsection{RCNN}
+\label{subsec:trainingrcnn}
 
 \section{Implementasi Alat
   \label{sec:implementasi alat}}
