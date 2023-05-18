@@ -22,6 +22,7 @@ However, when we tried to export the dataset into COCO format, it failed (e.g. c
 a web-based image annotation tool designed for versatility and efficiently labeling images to create training data. Regarding the number of keypoints in each robot, we followed NimbRo's dataset.
 There are six keypoints including head, trunk, hands, and feet. We stick to that idea because we want to try the model's performance and inference time with fewer keypoints first and if we are confident enough, we will increase the number of keypoints later.
 
+
 \section{Training Pose Estimation Model for Humanoid Robot}
 \label{sec:trainingrobot}
 
@@ -67,7 +68,7 @@ Note that the encoder is initialized by pre-trained ResNet weights on ImageNet.
 We also use data augmentation that includes random horizontal flip, random
 rotation, random scaling, and random translation during training \parencite{amini2021}.
 
-The main program for training is already made by them named \emph{main.py}, we just need to run it on Jupyter Notebook file or Terminal and adjust the arguments for our needs
+The main program for training is already made by them named \emph{main.py} using PyTorch framework, we just need to run it on Jupyter Notebook file or Terminal and adjust the arguments for our needs
 as seen in Command \ref{lst:trainingnimbro}. The value of argument \emph{config} is a file where we store all the hyperparameters, File \ref{lst:confignimbro} is one of the example.
 Second argument is a directory path where we save training result and last argument is a directory path where the dataset takes place.
 
@@ -105,7 +106,7 @@ The hyperparameters to train YOLO-pose followed the description in their GitHub 
 We use SGD optimizer with a cosine scheduler. The base learning rate is set to 10\textsuperscript{-2}, batch size 16,
 and weight decay of 5\textsuperscript{-4} for total 150 epochs. There are also data augmentation like random scale ([0.5, 1.5]),
 random translation [-10, 10], random flip with probability 0.5, mosaic augmentation with probability 1, and various color augmentations.
-It is the same with Section \ref{subsec:trainingnimbromodel}, actually, the main program for training has been provided, but the program is intended for humans with 17 keypoints.
+It is the same with Section \ref{subsec:trainingnimbromodel}, actually, the main program for training has been provided using PyTorch framework too, but the program is intended for humans with 17 keypoints.
 If we run it directly with our dataset with 6 keypoints, an error will be raised. Therefore, a little bit of code needs to be changed to make the training process can be run.
 After that, we can run Command \ref{lst:trainingyolo}. We will not go into all the arguments, only some of them. 
 A file containing the dataset path, number of keypoint, and class name is on the first argument. The second argument explains the full network architecture of YOLO-pose and 
@@ -119,35 +120,91 @@ argument \emph{hyp} is a file contains all the hyperparameters that are used.
 python train.py --data data/robot_kpts.yaml --cfg cfg/yolov7-w6-robot-pose.yaml --weights weights/yolov7-w6-pose.pt --batch-size 8 --kpt-label --device 0 --name yolov7-pose-merge --hyp data/hyp.pose.yaml --epochs 150
 \end{lstlisting}
 
-\subsection{RCNN}
+\subsection{R-CNN}
 \label{subsec:trainingrcnn}
 
-\section{Implementasi Alat
-  \label{sec:implementasi alat}}
+The R-CNN training is done on Jupyter Notebook directly using the PyTorch framework as well.
+Before starting the training process, we also need to convert the dataset format first.
+Actually, this format is almost the same as the YOLO format (each image has its own label), but the difference lies in the bounding box.
+Where the format of the bounding-box is the top left point and the bottom right point. We can do that by running Code \ref{lst:changecocotorcnn}.
 
-Alat diimplementasikan dengan \lipsum[1]
-
-% Contoh pembuatan potongan kode
-\begin{lstlisting}[
-  language=C++,
-  caption={Program halo dunia.},
-  label={lst:halodunia}
-]
-#include <iostream>
-
-int main() {
-    std::cout << "Halo Dunia!";
-    return 0;
-}
-\end{lstlisting}
-
-\lipsum[2-3]
-
-% Contoh input potongan kode dari file
 \lstinputlisting[
   language=Python,
-  caption={Program perhitungan bilangan prima.},
-  label={lst:bilanganprima}
-]{program/bilangan-prima.py}
+  caption={Change COCO to RCNN format program.},
+  label={lst:changecocotorcnn}
+]{program/coco-to-rcnn.py}
 
-\lipsum[4]
+The training process starts with loading our dataset and specifying the augmentation technique we are using. We use \emph{albumentations} library for augmenting our dataset.
+At first, we apply random rotation, brightness, and contrast. Nevertheless, the model seems to become underfitting, so we try just random brightness and contrast as seen in Code \ref{lst:augmentationrcnn}. 
+Fortunately, the result seems pretty good after that.
+
+\lstinputlisting[
+  language=Python,
+  caption={Augmentation technique used in RCNN Training.},
+  label={lst:augmentationrcnn}
+]{program/rcnn-augmentation.py}
+
+Code snippet \ref{lst:rcnnmodeldefinition} is a function that returns the keypoint R-CNN model.
+When calling the function, we can fill the first argument with value 6
+and leave the second argument blank. After the training process is complete, we can call the function again and fill in the second argument with the path of the resulting model for keypoint detection process.
+By default, the AnchorGenerator class in PyTorch has 3 different sizes (128, 256, 512) and 3 different aspect ratios (0.5, 1.0, 2.0).
+We have extended those parameters, AnchorGenerator to (32, 64, 128, 256, 512) and aspect ratios to (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0).
+Note that, \emph{num classes} argument is set to two because the first class is background and object is the second class.
+In this training, we use SGD optimizer with learning rate 10\textsuperscript{-3}, batch size 3, and weight decay of 5\textsuperscript{-4} for 50 epochs.
+
+\lstinputlisting[
+  language=Python,
+  caption={R-CNN model definition in PyTorch.},
+  label={lst:rcnnmodeldefinition}
+]{program/rcnn-model.py}
+
+
+\section{Finding the Best Model for Humanoid Robot Pose Estimation}
+\label{sec:findingbestmodelhumanoidrobot}
+
+We compare the three models on Section \ref{sec:trainingrobot} based on \emph{mAP} (mean Average Precision), \emph{mAR} (mean Average Recall),
+real detection result, and inference time on devices with limited computing capabilities (e.g. NUC i5).
+The comparison table of \emph{mAP}, \emph{mAR}, and real detection result of those models are in Chapter \ref{chap:resultsandiscussion}. In this section we just talk about the time inference.
+To know the time that it takes for the model to do the detection, we just need to subtract the time before and after the model does keypoint detection like Code \ref{lst:timedifference}.
+
+\lstinputlisting[
+  language=Python,
+  caption={Time difference program.},
+  label={lst:timedifference}
+]{program/time-difference.py}
+
+We attempt converting our models from PyTorch Model to OpenVINO in order to speed up the time inference. Before that, we convert it to ONNX first like Figure \ref{fig:pytorch-to-openvino}.
+The steps for converting PyTorch Model to ONNX can be seen in Code \ref{lst:convertpytorchtoonnx}. At first, we must ensure that the model is in inference mode by calling \emph{eval} function.
+Next, we create that dummy input variable. The call to \emph{torch.onnx.export} function runs the model once to trace its execution and then exports the traced model to the specified file.
+The resulting \emph{model-name.onnx} file contains a binary protocol buffer which contains both the network structure and parameters of the model exported.
+After that, we use Model Optimizer to convert the ONNX model to OpenVINO IR with FP16 precision. To install Model Optimizer in Python is pretty simple, just run
+\emph{pip install openvino-dev} in Terminal and to verify the package is properly installed, we run the command \emph{mo -h}. We will see the help message for Model Optimizer if installation finished successfully.
+After we run Command \ref{lst:convertonnxtoopenvino}, in directory named model, there are three files with \emph{bin}, \emph{mapping}, and \emph{xml} extension.
+If we want to run OpenVINO IR Model in OpenVINO Runtime, look Code \ref{lst:runopenvino}. Note that, the model path must contain three files earlier.
+
+\lstinputlisting[
+  language=Python,
+  caption={Convert from PyTorch Model to ONNX program.},
+  label={lst:convertpytorchtoonnx}
+]{program/convert_pytorch-to-onnx.py}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.45]{gambar/pytorch-onnx-openvino.jpg}
+  \caption{Flow of converting PyTorch Model to OpenVINO.}
+  \label{fig:pytorch-to-openvino}
+\end{figure}
+
+\begin{lstlisting}[
+  language={},
+  caption={Convert ONNX to OpenVINO command.},
+  label={lst:convertonnxtoopenvino}
+]
+mo --input_model 'model-name.onnx' --compress_to_fp16 --output_dir 'model'
+\end{lstlisting}
+
+\lstinputlisting[
+  language=Python,
+  caption={Run OpenVINO IR Model in OpenVINO Runtime.},
+  label={lst:runopenvino}
+]{program/load-openvino.py}
