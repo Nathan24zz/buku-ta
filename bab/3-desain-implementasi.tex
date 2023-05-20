@@ -3,7 +3,16 @@
 
 % Ubah bagian-bagian berikut dengan isi dari desain dan implementasi
 
-Penelitian ini dilaksanakan sesuai \lipsum[1][1-5]
+This chapter describes the design and implementation of the system that has been created.
+As seen in Figure \ref{fig:block-diagram}, it starts with making a new dataset. Then, training pose estimation models for humanoid robot with that new dataset.
+After that, we search the best model for both human and humanoid robot. Lastly, we make a main program that compares the suitability between humanoid robot pose and human pose.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=1.1]{gambar/diagram-block.png}
+  \caption{Block Diagram of Workflow.}
+  \label{fig:block-diagram}
+\end{figure}
 
 \section{Make New Dataset}
 \label{sec:makenewdataset}
@@ -120,10 +129,10 @@ argument \emph{hyp} is a file contains all the hyperparameters that are used.
 python train.py --data data/robot_kpts.yaml --cfg cfg/yolov7-w6-robot-pose.yaml --weights weights/yolov7-w6-pose.pt --batch-size 8 --kpt-label --device 0 --name yolov7-pose-merge --hyp data/hyp.pose.yaml --epochs 150
 \end{lstlisting}
 
-\subsection{R-CNN}
+\subsection{Keypoint RCNN}
 \label{subsec:trainingrcnn}
 
-The R-CNN training is done on Jupyter Notebook directly using the PyTorch framework as well.
+The Keypoint RCNN training is done on Jupyter Notebook directly using the PyTorch framework as well.
 Before starting the training process, we also need to convert the dataset format first.
 Actually, this format is almost the same as the YOLO format (each image has its own label), but the difference lies in the bounding box.
 Where the format of the bounding-box is the top left point and the bottom right point. We can do that by running Code \ref{lst:changecocotorcnn}.
@@ -144,7 +153,7 @@ Fortunately, the result seems pretty good after that.
   label={lst:augmentationrcnn}
 ]{program/rcnn-augmentation.py}
 
-Code snippet \ref{lst:rcnnmodeldefinition} is a function that returns the keypoint R-CNN model.
+Code snippet \ref{lst:rcnnmodeldefinition} is a function that returns the Keypoint RCNN model.
 When calling the function, we can fill the first argument with value 6
 and leave the second argument blank. After the training process is complete, we can call the function again and fill in the second argument with the path of the resulting model for keypoint detection process.
 By default, the AnchorGenerator class in PyTorch has 3 different sizes (128, 256, 512) and 3 different aspect ratios (0.5, 1.0, 2.0).
@@ -154,7 +163,7 @@ In this training, we use SGD optimizer with learning rate 10\textsuperscript{-3}
 
 \lstinputlisting[
   language=Python,
-  caption={R-CNN model definition in PyTorch.},
+  caption={Keypoint RCNN model definition in PyTorch.},
   label={lst:rcnnmodeldefinition}
 ]{program/rcnn-model.py}
 
@@ -182,18 +191,18 @@ After that, we use Model Optimizer to convert the ONNX model to OpenVINO IR with
 After we run Command \ref{lst:convertonnxtoopenvino}, in directory named model, there are three files with \emph{bin}, \emph{mapping}, and \emph{xml} extension.
 If we want to run OpenVINO IR Model in OpenVINO Runtime, look Code \ref{lst:runopenvino}. Note that, the model path must contain three files earlier.
 
-\lstinputlisting[
-  language=Python,
-  caption={Convert from PyTorch Model to ONNX program.},
-  label={lst:convertpytorchtoonnx}
-]{program/convert_pytorch-to-onnx.py}
-
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.45]{gambar/pytorch-onnx-openvino.jpg}
   \caption{Flow of converting PyTorch Model to OpenVINO.}
   \label{fig:pytorch-to-openvino}
 \end{figure}
+
+\lstinputlisting[
+  language=Python,
+  caption={Convert from PyTorch Model to ONNX program.},
+  label={lst:convertpytorchtoonnx}
+]{program/convert_pytorch-to-onnx.py}
 
 \begin{lstlisting}[
   language={},
@@ -208,3 +217,54 @@ mo --input_model 'model-name.onnx' --compress_to_fp16 --output_dir 'model'
   caption={Run OpenVINO IR Model in OpenVINO Runtime.},
   label={lst:runopenvino}
 ]{program/load-openvino.py}
+
+
+\section{Finding the Best Model for Human Pose Estimation}
+\label{sec:findingbestmodelhumanrobot}
+
+
+\section{Comparing the Suitability Between Humanoid Robot Pose and Human Pose}
+\label{sec:comparingsuitability}
+
+Before comparing the pose between a human and a humanoid robot, we need to reduce the human keypoint to the same as the robot's keypoint.
+Based on the results after testing, we chose Mediapipe for human and Keypoint RCNN for robot. Mediapipe provides 33 landmark keypoints for human and Keypoint RCNN only provides 6 keypoints.
+Therefore, we need to reduce the human keypoint to 6 as shown in Code \ref{lst:reducehumankeypoints}.
+The name of the keypoints in the code corresponds to the name of the keypoints in the robot. First, we get all 33 keypoints in row 16. Then calculate the keypoint we want, such as the head keypoint which is located between the right and left eyes.
+The keypoint for the hands and feet is simply to select the wrists and ankles in Mediapipe(lines 22-28), where landmark[15] and landmark[16] are wrists, landmark[27] and landmark[28] are ankles. Lastly, the trunk keypoint is located between the shoulder and hip keypoint (lines 31-34).
+
+\lstinputlisting[
+  language=Python,
+  caption={Reduce human keypoints program.},
+  label={lst:reducehumankeypoints}
+]{program/reduce-human-keypoints.py}
+
+The next step is defining similarity. When we think about the problem, we see that there are many uncertainties to be addressed. For example, human and humanoid robot can differ in height, body shape, and location within an image: one subject (human or robot) may have been nearby the camera,
+while another may have been in the distance. In order to get an accurate outcome, each of these issues must be resolved.
+After reducing the keypoints, the model output for both human and robot is the coordinates of 6 keypoints. This information can be used to create a new bounding box that tightly covers the person in the picture. This solves the problem of the subject appearing in different parts of the picture.
+We further normalized the resulting keypoints coordinates by performing L2 normalization in order to transform it into a unit vector as shown in Figure \ref{fig:transforming-into-unit-vector}. This means we are ignoring the size of the picture, but keeping in account the direction of the vector, created by the pose inside of that image.
+The two steps described before can be thought of visually as shown in Figure \ref{fig:steps-to-normalize}.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.9]{gambar/transform-to-unit-vector.png}
+  \caption{Transforming into Unit Vector.}
+  \label{fig:transforming-into-unit-vector}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.9]{gambar/two-steps.png}
+  \caption{Steps Taken to Normalize Data.}
+  \label{fig:steps-to-normalize}
+\end{figure}
+
+Now that we have standardized the pose vectors, it is time to choose a similarity measure. We chose cosine similarity for this particular instance, mainly because we are working with vectors and performing a few calculations detailed below to arrive at a Euclidean distance that can be interpreted as a cosine distance. The formula shown in Equation \ref{eq:euclideandistance}.
+In that formula, Fxy and Gxy are two pose vectors to be compared after L2 normalization. Moreover, Fxy and Gxy contain only x and y positions for each of the 6 keypoints, it does not include confidence scores.
+
+\begin{equation}
+  \label{eq:euclideandistance}
+  \sum \mathbf{F} = 0\; \Leftrightarrow\; \frac{\mathrm{d} \mathbf{v} }{\mathrm{d}t} = 0.
+\end{equation}
+
+\section{Making Main Program}
+\label{sec:makingmainprogram}
