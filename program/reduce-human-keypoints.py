@@ -14,6 +14,7 @@ def human_mediapipe_detection(image_path, pose):
 
     if results.pose_landmarks:
         landmark = results.pose_landmarks.landmark
+        
         left_eye = landmark[2]
         right_eye = landmark[5]
         head = [(left_eye.x + right_eye.x) / 2 * image_width,

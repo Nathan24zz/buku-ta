@@ -241,8 +241,16 @@ The keypoint for the hands and feet is simply to select the wrists and ankles in
 The next step is defining similarity. When we think about the problem, we see that there are many uncertainties to be addressed. For example, human and humanoid robot can differ in height, body shape, and location within an image: one subject (human or robot) may have been nearby the camera,
 while another may have been in the distance. In order to get an accurate outcome, each of these issues must be resolved.
 After reducing the keypoints, the model output for both human and robot is the coordinates of 6 keypoints. This information can be used to create a new bounding box that tightly covers the person in the picture. This solves the problem of the subject appearing in different parts of the picture.
-We further normalized the resulting keypoints coordinates by performing L2 normalization in order to transform it into a unit vector as shown in Figure \ref{fig:transforming-into-unit-vector}. This means we are ignoring the size of the picture, but keeping in account the direction of the vector, created by the pose inside of that image.
+The code implementation can be seen in Code \ref{lst:newbbox}. Line 1-12 is finding the keypoint minimum value, line 14-17 is substracting x value and y value with minimum value before. After that, we get the new bounding box.
+We further normalized the resulting keypoints coordinates by performing L2 normalization in order to transform it into a unit vector as shown in Figure \ref{fig:transforming-into-unit-vector} and the implementation on Code \ref{lst:l2norm} (Note that, we prevent division by 0 in lines 8-11 to avoid error).
+This means we are ignoring the size of the picture, but keeping in account the direction of the vector, created by the pose inside of that image.
 The two steps described before can be thought of visually as shown in Figure \ref{fig:steps-to-normalize}.
+
+\lstinputlisting[
+  language=Python,
+  caption={Get New Bounding Box Program.},
+  label={lst:newbbox}
+]{program/bbox.py}
 
 \begin{figure}[ht]
   \centering
@@ -251,6 +259,12 @@ The two steps described before can be thought of visually as shown in Figure \re
   \label{fig:transforming-into-unit-vector}
 \end{figure}
 
+\lstinputlisting[
+  language=Python,
+  caption={L2 normalization Program.},
+  label={lst:l2norm}
+]{program/l2_norm.py}
+
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.9]{gambar/two-steps.png}
@@ -258,13 +272,25 @@ The two steps described before can be thought of visually as shown in Figure \re
   \label{fig:steps-to-normalize}
 \end{figure}
 
-Now that we have standardized the pose vectors, it is time to choose a similarity measure. We chose cosine similarity for this particular instance, mainly because we are working with vectors and performing a few calculations detailed below to arrive at a Euclidean distance that can be interpreted as a cosine distance. The formula shown in Equation \ref{eq:euclideandistance}.
+Now that we have standardized the pose vectors, it is time to choose a similarity measure. We chose cosine similarity for this particular instance, mainly because we are working with vectors and performing a few calculations detailed below to arrive at a Euclidean distance that can be interpreted as a cosine distance.
+The formula shown in Equation \ref{eq:euclideandistance} and the implementation on Code \ref{lst:cosinedistane}.
 In that formula, Fxy and Gxy are two pose vectors to be compared after L2 normalization. Moreover, Fxy and Gxy contain only x and y positions for each of the 6 keypoints, it does not include confidence scores.
 
 \begin{equation}
-  \label{eq:euclideandistance}
-  \sum \mathbf{F} = 0\; \Leftrightarrow\; \frac{\mathrm{d} \mathbf{v} }{\mathrm{d}t} = 0.
+  \label{eq:cosinesimilarity}
+  cosineSimilarity(x,y) = \frac{x \cdot y}{|x||y|}
 \end{equation}
+
+\begin{equation}
+  \label{eq:euclideandistance}
+  D(Fxy, Gxy) = \sqrt{2 * (1 - cosineSimilarity(Fxy, Gxy))}
+\end{equation}
+
+\lstinputlisting[
+  language=Python,
+  caption={Cosine Distance Program.},
+  label={lst:cosinedistane}
+]{program/cosine_distance.py}
 
 \section{Making Main Program}
 \label{sec:makingmainprogram}
