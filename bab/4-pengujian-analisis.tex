@@ -27,7 +27,7 @@ This section shows the evaluation metrics about three models and testing we perf
 From Table \ref{tb:robotmodelcomparison} it can be seen that RCNN has the lowest evaluation metric among the other models.
 However, RCNN showed the best detection results as shown in Table \ref{tb:robotmodelcomparisondetectionresults}, followed by NimbRo and YOLO-pose.
 Lastly, Nimbro is the most likely to be applied to real time systems because it has the lowest inference time.
-Because our main program uses the web for interaction and during 'PLAY' mode, there is a fairly long delay due to transferring 2 image data from the server to the client.
+Because our main program uses the web for interaction and during PLAY mode, there is a fairly long delay due to transferring 2 image data from the server to the client.
 We decide to store first and do pose comparisons afterwards, therefore we need the best detection results even though the inference time is a bit long, so the RCNN model is suitable for this.
 
 \begin{longtable}{|c|c|c|c|c|c|c|c|c|c|c|}

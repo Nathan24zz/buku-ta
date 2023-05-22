@@ -88,7 +88,7 @@ as explained in Section \ref{sec:poseestimation}, in general, the effort to tack
 In the top-down approach, the initial stage is to identify specific individuals, and the subsequent step is to implement pose estimation. The fact that the model's performance is closely associated with the performance of the person detector is one of the drawbacks of this approach. Although the state-of-the-art (SOTA) results are derived from this type of approach,  the runtime of such approaches is negatively affected by the number of persons present,
 as a single-person pose estimator is run for each detection. Since the computational cost grows linearly as the number of users increases, performance is frequently not real-time \parencite{amini2021}.
 
-Bottom-up techniques, on the other hand, are less reliant on the number of people in the image because they simultaneously identify body joints and classify them into individuals. Accurately grouping the detected keypoints in real-time is one of the bottom-up method's fundamental issues.
+Bottom-up techniques, on the other hand, are less reliant on the number of people in the image because they simultaneously identify body joints and classify them into individuals. Accurately grouping the detected keypoints in real-time is one of the bottom-up method's fundamental issues.
 Recent methods arrange the identified keypoints into distinct instances using a greedy algorithm. In addition, compared to the top-down method, the bottom-up method's effectiveness is more influenced by the various scales of the people in a given image. Previous research has relied on high-resolution input size \parencite{papandreou2018} or the scale search method \parencite{cao2019} to address this issue. However, the inference time is growing as a result of these strategies.
 A time-efficient method predicting keypoints at higher resolution was introduced by Cheng et al. \parencite{cheng2020}, narrowing the performance gap between bottom-up and top-down models.
 
@@ -98,9 +98,12 @@ new dataset. Two of them use a bottom-up approach and one uses a top-down approa
 \subsection{NimbRo's Model}
 \label{subsec:nimbromodel}
 
-NimbRo's model chose to use a similar architecture with NimbRo-Net and NimbRo-Net2 because it had such positive outcomes. Their model is an single-stage encoder-decoder network which takes an RGB image of
-size \emph{w x h}. The model predicts heatmaps of both keypoints and limbs for scale 1/4 and only
-heatmaps of keypoints for scale 1/2, where each scale is supervised with an intermediate loss \parencite{amini2021}. The full network architecture is depicted in Figure \ref{fig:nimbro-model-architecture}.
+NimbRo's model chose to use a similar architecture with NimbRo-Net and NimbRo-Net2 because it had such positive outcomes.
+Their model, an encoder-decoder network, takes an RGB image with dimensions of \emph{w x h}. Rather than use the decoder to create a powerful feature extractor, they observe it is more required to use a deeper encoder.
+A pre-trained ResNet model \parencite{he2016} is used as the encoder, and the last fully connected and global average pooling layers have been removed.
+The first layer is a 7 x 7 convolutional with stride 2, followed by a max-pooling layer.  The remaining four modules of the encoder network are residual blocks, which have lower resolutions and higher depths as the number of modules rises.
+Depending on the ResNet architecture that was chosen, each residual block is made up of two or three convolutional layers, followed by batch normalization, ReLU activation, and a shortcut connection. Early layers have more fine-grained spatial information,
+while final layers contain more semantic information that network has extracted \parencite{amini2021}.
 
 \begin{figure}[ht]
   \centering
@@ -108,6 +111,16 @@ heatmaps of keypoints for scale 1/2, where each scale is supervised with an inte
   \caption{NimbRo's model architecture}
   \label{fig:nimbro-model-architecture}
 \end{figure}
+
+In the decoder part, they use lateral connections from different parts of the encoder, which enables the model to keep high-resolution information. They apply 1 x 1 convolution to generate a fixed number of channels for every lateral connection.
+The decoder network has a feature pyramid structure involving four modules. The output from the preceding level is fed into a 3 x 3 transposed convolution at each level of the pyramid, followed by a bilinear upsampling to produce a fixed number of higher-resolution features.
+The features from the corresponding lateral connection are concatenated with the features from the upsampled samples. ReLU and batch normalization are used like in the encoder, to obtain the module's final output.
+As depicted in Figure \ref{fig:nimbro-model-architecture}, the model predicts heatmaps of both keypoints and limbs for scale 1/4 and only
+heatmaps of keypoints for scale 1/2, where each scale is supervised with an intermediate loss \parencite{amini2021}.
+For evaluation metrics, they use Object Keypoint Similarity (OKS) metric from COCO keypoint dataset \parencite{ronchi2017}.
+The OKS metric is robust to the number of visible keypoints since it gives equal weight to robot instances with various quantities of visible keypoints.
+The evaluation metrics they used are as follows: AP (the mean average precision over 10 OKS thresholds = [0.50:0.05:0.95]), AP50
+(AP at OKS threshold = 0.50), AP75, APM for medium scale robot instances, APL for large scale instances, and AR (the mean of average recall over 10 OKS thresholds) \parencite{amini2021}.
 
 \subsection{YOLO-pose}
 \label{subsec:yolopose}
