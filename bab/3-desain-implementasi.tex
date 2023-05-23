@@ -71,14 +71,14 @@ python and many libraries preinstalled with following allocated resources explai
 \label{subsec:trainingnimbromodel}
 
 The hyperparameters that are used to train NimbRo's model followed the description in their paper.
-This model is trained using the AdamW optimizer with a learning rate of 10\textsuperscript{-4} ,
+This model is trained using the AdamW optimizer with a learning rate of 10\textsuperscript{-4},
 batch size 16, and weight decay of 10\textsuperscript{-4} for the total 200 epochs.
 Note that the encoder is initialized by pre-trained ResNet weights on ImageNet.
-We also use data augmentation that includes random horizontal flip, random
-rotation, random scaling, and random translation during training \parencite{amini2021}.
+We also use data augmentation that includes random scaling and random translation during training \parencite{amini2021}.
+We do not use random horizontal flip and random rotation like NimbRo did because in our case it will make the training result worse.
 
 The main program for training is already made by them named \emph{main.py} using PyTorch framework, we just need to run it on Jupyter Notebook file or Terminal and adjust the arguments for our needs
-as seen in Command \ref{lst:trainingnimbro}. The value of argument \emph{config} is a file where we store all the hyperparameters, File \ref{lst:confignimbro} is one of the example.
+as seen in Command \ref{lst:trainingnimbro}. The value of argument \emph{config} is a file where we store all the hyperparameters, number of epochs, dataset name for training and testing, and many others, File \ref{lst:confignimbro} is one of the example.
 Second argument is a directory path where we save training result and last argument is a directory path where the dataset takes place.
 
 \begin{lstlisting}[
@@ -285,7 +285,7 @@ In that formula, Fxy and Gxy are two pose vectors to be compared after L2 normal
 
 \begin{equation}
   \label{eq:euclideandistance}
-  D(Fxy, Gxy) = \sqrt{2 * (1 - cosineSimilarity(Fxy, Gxy))}
+  D(F_{xy}, G_{xy}) = \sqrt{2 * (1 - cosineSimilarity(F_{xy}, G_{xy}))}
 \end{equation}
 
 \lstinputlisting[

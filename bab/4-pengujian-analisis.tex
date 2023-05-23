@@ -24,11 +24,13 @@ All tests were conducted using the Ichiro robot in the \emph{Robot Cerdas} Labor
 \label{sec:robotmodeltrainingresult}
 
 This section shows the evaluation metrics about three models and testing we perform such as visualizing detection results and inference time.
-From Table \ref{tb:robotmodelcomparison} it can be seen that RCNN has the lowest evaluation metric among the other models.
-However, RCNN showed the best detection results as shown in Table \ref{tb:robotmodelcomparisondetectionresults}, followed by NimbRo and YOLO-pose.
-Lastly, Nimbro is the most likely to be applied to real time systems because it has the lowest inference time.
-Because our main program uses the web for interaction and during PLAY mode, there is a fairly long delay due to transferring 2 image data from the server to the client.
-We decide to store first and do pose comparisons afterwards, therefore we need the best detection results even though the inference time is a bit long, so the RCNN model is suitable for this.
+For the evaluation metrics, We use the Object Keypoint Similarity (OKS) with a per-keypoint constant that controls fall off is equal to 0.4.
+From Table \ref{tb:robotmodelcomparison} it can be seen that RCNN has the highest evaluation metric among the other models.
+Moreover, RCNN showed the best detection results as shown in Table \ref{tb:robotmodelcomparisondetectionresults}, followed by NimbRo and YOLO-pose.
+Lastly, Nimbro is the most likely to be applied to real-time systems because it has the lowest inference time.
+However, since our main program uses the web for interaction and during PLAY mode, there is a considerable delay due to transferring two image data from the server to the client.
+We decide to store the images first and do pose comparisons afterwards,
+therefore we are more concerned with a reliable model than a faster model, so the RCNN model is suitable for this.
 
 \begin{longtable}{|c|c|c|c|c|c|c|c|c|c|c|}
   \caption{Robot Model Comparison.}
@@ -39,7 +41,7 @@ We decide to store first and do pose comparisons afterwards, therefore we need t
   \hline
   NimbRo         & 0.828       & 0.879                         & 0.840                         & 0.886                        & 0.864                        & 0.836       & 0.884                         & 0.849                         & 0.895                        & 0.872 \\
   \hline                        
-  RCNN           & 0.537       & 0.726                         & 0.515                         & 0.258                        & 0.758                        & 0.583       & 0.792                         & 0.564                         & 0.387                        & 0.771 \\
+  RCNN           & 0.879       & 0.936                         & 0.904                         & 0.859                        & 0.937                        & 0.925       & 0.973                         & 0.944                         & 0.936                        & 0.955 \\
   \hline                        
   YOLO           & 0.849       & 0.838                         & -                             & -                            & -                            & 0.814       & -                             & -                             & -                            & - \\
   \hline
@@ -71,7 +73,7 @@ We decide to store first and do pose comparisons afterwards, therefore we need t
   \hline
   RCNN Keypoint   & 3.5 - 4.0 & 1.25 \\
   \hline
-  YOLO-pose   & 3.5 - 4.0 & 1.25 \\
+  YOLO-pose   &  &  \\
   \hline
 \end{longtable}
 
