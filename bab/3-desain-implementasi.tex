@@ -297,10 +297,16 @@ In that formula, Fxy and Gxy are two pose vectors to be compared after L2 normal
 \section{Making Main Program}
 \label{sec:makingmainprogram}
 
-Our main program uses websites to interact with users because of its flexibility on any platform. So there is a Javascript client and a Python Server that communicate via \emph{socketio}.
+Our main program uses websites to interact with users because of its flexibility on any platform, the website view can be seen in Figure \ref{fig:websiteview}. So there is a Javascript client and a Python Server that communicate via \emph{socketio}.
 The main program is divided into two modes, RECORD mode and PLAY mode. In RECORD mode, a human as a trainer gives a series of movements and will be followed by a humanoid robot, as well as robot save these movements to use in PLAY mode later.
 Meanwhile, in the PLAY mode, the robot acts as a trainer and performs a series of movements according to the movements previously stored in RECORD mode. Human will follow the robot's movement while the robot is also saving both human and robot images.
 So there will be two cameras, one camera to record human movement (located on the robot's head) and the other to record robot movement (located from the human side facing the robot).
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.75]{gambar/web.png}
+  \caption{Website View.}
+  \label{fig:websiteview}
+\end{figure}
 
 On the client side, we use ReactJS framework. There are four buttons: RECORD, PLAY, START, and STOP button. The RECORD and PLAY button indicates the modes in the main program, while the START and STOP button tell us when the mode is started or stopped.
 Besides that, there are also two images that show human and robot image that is sent from the server side. As shown in Code \ref{lst:clientside}, client and server communicate through port 5555 (line 5).
