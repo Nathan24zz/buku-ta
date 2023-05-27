@@ -24,13 +24,13 @@ All tests were conducted using the Ichiro robot in the \emph{Robot Cerdas} Labor
 \label{sec:robotmodeltrainingresult}
 
 This section shows the evaluation metrics about three models and testing we perform such as visualizing detection results and inference time.
-For the evaluation metrics, We use the Object Keypoint Similarity (OKS) with a per-keypoint constant that controls fall off is equal to 0.4.
+For the evaluation metrics, NimbRo and RCNN use the Object Keypoint Similarity (OKS) with a per-keypoint constant equal to 0.4 for all keypoints.
+Otherwise, YOLO uses slightly different OKS, they extend the idea of IOU loss from box to keypoints. OKS is treated as IOU in case of keypoints \parencite{maji2022yolopose}.
 From Table \ref{tb:robotmodelcomparison} it can be seen that RCNN has the highest evaluation metric among the other models.
 Moreover, RCNN showed the best detection results as shown in Table \ref{tb:robotmodelcomparisondetectionresults}, followed by NimbRo and YOLO-pose.
-Lastly, Nimbro is the most likely to be applied to real-time systems because it has the lowest inference time.
+Lastly, Nimbro is the most likely to be applied to real-time systems because it has the lowest inference time as shown in Table \ref{tb:inferencerobot}.
 However, since our main program uses the web for interaction and during PLAY mode, there is a considerable delay due to transferring two image data from the server to the client.
-We decide to store the images first and do pose comparisons afterwards,
-therefore we are more concerned with a reliable model than a faster model, so the RCNN model is suitable for this.
+Hence, we decide to store the images first and do pose comparisons afterwards. Since we are more concerned with a reliable model than a faster model, so the RCNN model is suitable for this.
 
 \begin{longtable}{|c|c|c|c|c|c|c|c|c|c|c|}
   \caption{Robot Model Comparison.}

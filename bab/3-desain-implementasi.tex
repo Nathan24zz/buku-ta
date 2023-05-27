@@ -17,7 +17,7 @@ After that, we search the best model for both human and humanoid robot. Lastly, 
 \section{Make New Dataset}
 \label{sec:makenewdataset}
 
-This new dataset is a merge of KimbRo's Humanoid Robot Pose dataset and Ichiro's dataset. NimbRo's dataset contains both single and multiple robots to
+This new dataset is a merge of NimbRo's Humanoid Robot Pose dataset and Ichiro's dataset. NimbRo's dataset contains both single and multiple robots to
 simulate RoboCup's real conditions. They also gathered from RoboCup Humanoid League YouTube videos, their own internal videos, and ROS bags. 
 Overall, their dataset has over 1.5k images that come from 23 videos with around 2.3k robot instances. These images include teen and adult-sized robots and contain more than ten different robot types \parencite{amini2021}.
 However, the robots in Ichiro's dataset are only kid-sized and come in single or maximum two-robot configurations. The images in our dataset come from videos that are taken in our lab. 
@@ -98,8 +98,8 @@ python src/main.py --config experiments/train_merge_2.yaml --output_dir ichiro_n
 \subsection{YOLO-pose}
 \label{subsec:trainingyolopose}
 
-Before we jumped into training process, we must change format of our newly dataset from COCO to YOLO. Differ from COCO format, YOLO format give keypoint confidence or visibility flag 2 for either visible or occluded keypoint
-and if it is outside the field of view, the value is set to zero. However, COCO format defined visibility flag as v=0: not labeled,  v=1: labeled but not visible, and v=2: labeled and visible. So, we change the definition of
+Before we jumped into training process, we must change format of our newly dataset from COCO to YOLO. Differ from COCO format, YOLO format gives keypoint confidence or visibility flag 2 for either visible or occluded keypoint
+and if it is outside the field of view, the value is set to zero. However, COCO format defines visibility flag as v=0: not labeled, v=1: labeled but not visible, and v=2: labeled and visible. So, we change the definition of
 v=1 and v=2 become just v=2 in YOLO format and keep v=0.
 Beside keypoint format differences, bounding-box format between them is also different. COCO defines a bounding-box as follow: x (top left), y (top left), width, and height. On the other hand,
 bounding-box format in YOLO is: x (center), y (center), width, and height also all of them need to be normalized. Thus, we need to add 1/2 width to x, 1/2 height to y, and normalize them.
@@ -156,8 +156,8 @@ Fortunately, the result seems pretty good after that.
 Code snippet \ref{lst:rcnnmodeldefinition} is a function that returns the Keypoint RCNN model.
 When calling the function, we can fill the first argument with value 6
 and leave the second argument blank. After the training process is complete, we can call the function again and fill in the second argument with the path of the resulting model for keypoint detection process.
-By default, the AnchorGenerator class in PyTorch has 3 different sizes (128, 256, 512) and 3 different aspect ratios (0.5, 1.0, 2.0).
-We have extended those parameters, AnchorGenerator to (32, 64, 128, 256, 512) and aspect ratios to (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0).
+By default, the \emph{AnchorGenerator} class in PyTorch has 3 different sizes (128, 256, 512) and 3 different aspect ratios (0.5, 1.0, 2.0).
+We have extended those parameters, \emph{AnchorGenerator} to (32, 64, 128, 256, 512) and \emph{aspect ratios} to (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0).
 Note that, \emph{num classes} argument is set to two because the first class is background and object is the second class.
 In this training, we use SGD optimizer with learning rate 10\textsuperscript{-3}, batch size 3, and weight decay of 5\textsuperscript{-4} for 50 epochs.
 
@@ -228,7 +228,7 @@ In order to compare the models, we selected a paper for reference. So evaluation
 \section{Comparing the Suitability Between Humanoid Robot Pose and Human Pose}
 \label{sec:comparingsuitability}
 
-Before comparing the pose between a human and a humanoid robot, we need to reduce the human keypoint to the same as the robot's keypoint.
+The difference in numbers between human keypoints and robot keypoints makes us have to reduce human keypoints in order to make a comparison between them.
 Based on the results after testing, we chose Mediapipe for human and Keypoint RCNN for robot. Mediapipe provides 33 landmark keypoints for human and Keypoint RCNN only provides 6 keypoints.
 Therefore, we need to reduce the human keypoint to 6 as shown in Code \ref{lst:reducehumankeypoints}.
 The name of the keypoints in the code corresponds to the name of the keypoints in the robot. First, we get all 33 keypoints in row 16. Then calculate the keypoint we want, such as the head keypoint which is located between the right and left eyes.
