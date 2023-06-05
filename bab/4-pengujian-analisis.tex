@@ -89,8 +89,7 @@ Based on \parencite{bazarevsky2020} that compares three different models: BlazeP
 Note that, in this study, we use BlazePose Full because by default the value of \emph{model complexity} argument is 1 in the \emph{mediapipe.solutions.pose.Pose} API class. Mediapipe provides 3 BlazePose models: BlazePose Lite, BlazePose Full, and BlazePose Heavy. Pose landmark accuracy as well as inference latency generally go up with the model complexity.
 Table \ref{tb:yoloandmediapipecomparison} shows the comparison between YOLO-pose and MediaPipe Pose and based on our needs to just detect one person, MediaPipe should be the best and also reliable choice.  
 
-\def\arraystretch{1}
-\begin{longtable}{|p{3cm}|p{5cm}|p{5cm}|}
+\begin{longtable}{|L{3cm}|L{5cm}|L{5cm}|}
   \caption{YOLO-pose and MediaPipe Pose Comparison.}
   \label{tb:yoloandmediapipecomparison}\\
   \hline
@@ -107,7 +106,6 @@ Table \ref{tb:yoloandmediapipecomparison} shows the comparison between YOLO-pose
   \hline
 \end{longtable}
 
-\def\arraystretch{1.5}
 \begin{longtable}{|c|c|c|}
   \caption{Inference Time Model Human.}
   \label{tb:inferencehuman}\\

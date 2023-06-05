@@ -23,6 +23,14 @@
 % Pengaturan kutipan artikel
 \usepackage[style=apa, backend=biber]{biblatex}
 
+\usepackage{array}
+% % make horizontal align center in tabular
+% \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+% % make vertical align center in tabular
+% \newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+% make vertical align center and horizontal align left in tabular
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash} m{#1} }
+
 % Package lainnya
 \usepackage{changepage}
 \usepackage{enumitem}
