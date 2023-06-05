@@ -144,7 +144,7 @@ Where the format of the bounding-box is the top left point and the bottom right 
 ]{program/coco-to-rcnn.py}
 
 The training process starts with loading our dataset and specifying the augmentation technique we are using. We use \emph{albumentations} library for augmenting our dataset.
-At first, we apply random rotation, brightness, and contrast. Nevertheless, the model seems to become underfitting, so we try just random brightness and contrast as seen in Code \ref{lst:augmentationrcnn}. 
+At first, we apply random brightness and contrast. Nevertheless, the model seems to become underfitting, so we try just random brightness and contrast as seen in Code \ref{lst:augmentationrcnn}. 
 Fortunately, the result seems pretty good after that.
 
 \lstinputlisting[
@@ -315,7 +315,7 @@ So there will be two cameras, one camera to record human movement (located on th
   \label{fig:posecomparisonside}
 \end{figure}
 
-On the client side, we use ReactJS framework. There are four buttons: RECORD, PLAY, START, and STOP button. The RECORD and PLAY button indicates the modes in the main program, while the START and STOP button tell us when the mode is started or stopped.
+On the client side, we use ReactJS library. There are four buttons: RECORD, PLAY, START, and STOP button. The RECORD and PLAY button indicates the modes in the main program, while the START and STOP button tell us when the mode is started or stopped.
 Besides that, there are also two images that show human and robot image that is sent from the server side. As shown in Code \ref{lst:clientside}, client and server communicate through port 5555 (line 5).
 We use the \emph{useEffect} function to indicate if there is a change in a particular variable and do something like converting the image from the buffer to a string (line 13) in order to display it on the HTML image tag later on and send some data to the server (line 20).
 

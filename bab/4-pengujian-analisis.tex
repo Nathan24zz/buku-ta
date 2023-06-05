@@ -6,6 +6,7 @@
 This section discusses and shows the results from our test and analysis on training humanoid robot model, human model comparison, and also compares their suitability.
 All tests were conducted using the Ichiro robot in the \emph{Robot Cerdas} Laboratory with computer specifications as can be seen in Table \ref{tb:computerspecichiro}.
 
+\def\arraystretch{1.5}
 \begin{longtable}{|c|c|}
   \caption{Computer specification on Ichiro robot.}
   \label{tb:computerspecichiro}\\
@@ -47,6 +48,7 @@ Hence, we decide to store the images first and do pose comparisons afterwards. S
   \hline
 \end{longtable}
 
+\def\arraystretch{0.5}
 \begin{longtable}{|c|c|c|}
   \caption{Robot Model Comparison Detection Results.}
   \label{tb:robotmodelcomparisondetectionresults}\\
@@ -54,14 +56,15 @@ Hence, we decide to store the images first and do pose comparisons afterwards. S
   \rowcolor[HTML]{C0C0C0}
   \textbf{NimbRo}    & \textbf{RCNN} & \textbf{YOLO-pose}\\
   \hline
-  \includegraphics{gambar/nimbro-1.png} & \includegraphics{gambar/rcnn-1.png} & \includegraphics{gambar/yolo-1.png} \\
+  \includegraphics[scale=0.85]{gambar/nimbro-1.png} & \includegraphics[scale=0.48]{gambar/rcnn-1.png} & \includegraphics[scale=0.66]{gambar/yolo-1.png} \\
   \hline
-  \includegraphics{gambar/nimbro-2.png} & \includegraphics{gambar/rcnn-2.png} & \includegraphics{gambar/yolo-2.png} \\
+  \includegraphics[scale=0.85]{gambar/nimbro-2.png} & \includegraphics[scale=0.49]{gambar/rcnn-2.png} & \includegraphics[scale=0.68]{gambar/yolo-2.png} \\
   \hline
-  \includegraphics{gambar/nimbro-3.png} & \includegraphics{gambar/rcnn-3.png} & \includegraphics{gambar/yolo-3.png} \\
+  \includegraphics[scale=0.85]{gambar/nimbro-3.png} & \includegraphics[scale=0.49]{gambar/rcnn-3.png} & \includegraphics[scale=0.67]{gambar/yolo-3.png} \\
   \hline
 \end{longtable}
 
+\def\arraystretch{1.5}
 \begin{longtable}{|c|c|c|}
   \caption{Inference Time Model Humanoid Robot.}
   \label{tb:inferencerobot}\\
@@ -86,6 +89,7 @@ Based on \parencite{bazarevsky2020} that compares three different models: BlazeP
 Note that, in this study, we use BlazePose Full because by default the value of \emph{model complexity} argument is 1 in the \emph{mediapipe.solutions.pose.Pose} API class. Mediapipe provides 3 BlazePose models: BlazePose Lite, BlazePose Full, and BlazePose Heavy. Pose landmark accuracy as well as inference latency generally go up with the model complexity.
 Table \ref{tb:yoloandmediapipecomparison} shows the comparison between YOLO-pose and MediaPipe Pose and based on our needs to just detect one person, MediaPipe should be the best and also reliable choice.  
 
+\def\arraystretch{1}
 \begin{longtable}{|p{3cm}|p{5cm}|p{5cm}|}
   \caption{YOLO-pose and MediaPipe Pose Comparison.}
   \label{tb:yoloandmediapipecomparison}\\
@@ -103,6 +107,7 @@ Table \ref{tb:yoloandmediapipecomparison} shows the comparison between YOLO-pose
   \hline
 \end{longtable}
 
+\def\arraystretch{1.5}
 \begin{longtable}{|c|c|c|}
   \caption{Inference Time Model Human.}
   \label{tb:inferencehuman}\\
