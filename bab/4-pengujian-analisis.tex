@@ -127,17 +127,18 @@ Table \ref{tb:yoloandmediapipecomparison} shows the comparison between YOLO-pose
 By using the method in Section \ref{sec:comparingsuitability}, we get the result from comparing the human pose and robot pose in percentage terms.
 We can see the two figures below, in Figure \ref{fig:comparingb} humans make movement that are more like robot than in Figure \ref{fig:comparinga}.
 Therefore, the comparison result of Figure \ref{fig:comparingb} is higher at 91\% than Figure \ref{fig:comparinga} with just 79\%.
+Figure \ref{fig:comparisongtandresult} shows the comparison between ground truth and detection results for every robot inside the new dataset.
 
 \begin{figure}
   \centering
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
       \centering
       \includegraphics[width=\textwidth]{gambar/human_10_result.jpg}
       \caption{Human Image}
       \label{fig:humanimagea}
   \end{subfigure}
   \hfill
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
       \centering
       \includegraphics[width=\textwidth]{gambar/robot_6_result.jpg}
       \caption{Robot Image}
@@ -149,14 +150,14 @@ Therefore, the comparison result of Figure \ref{fig:comparingb} is higher at 91\
 
 \begin{figure}
   \centering
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
       \centering
       \includegraphics[width=\textwidth]{gambar/human_6_result.jpg}
       \caption{Human Image}
       \label{fig:humanimageb}
   \end{subfigure}
   \hfill
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
       \centering
       \includegraphics[width=\textwidth]{gambar/robot_6_result.jpg}
       \caption{Robot Image}
@@ -164,4 +165,38 @@ Therefore, the comparison result of Figure \ref{fig:comparingb} is higher at 91\
   \end{subfigure}
      \caption{Comparing Humanoid Robot Pose and Human Pose.}
      \label{fig:comparingb}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=.15\textwidth]{gambar/comp_with_gt/robot_1_gt.png}
+  \includegraphics[width=.15\textwidth]{gambar/comp_with_gt/robot_1_res.png} \hfill%
+  \includegraphics[width=.113\textwidth]{gambar/comp_with_gt/robot_2_gt.png}
+  \includegraphics[width=.113\textwidth]{gambar/comp_with_gt/robot_2_res.png} \hfill%
+  \includegraphics[width=.15\textwidth]{gambar/comp_with_gt/robot_3_gt.png}
+  \includegraphics[width=.15\textwidth]{gambar/comp_with_gt/robot_3_res.png}
+  \\[\medskipamount]
+  \includegraphics[width=.135\textwidth]{gambar/comp_with_gt/robot_4_gt.png}
+  \includegraphics[width=.135\textwidth]{gambar/comp_with_gt/robot_4_res.png} \hfill%
+  \includegraphics[width=.148\textwidth]{gambar/comp_with_gt/robot_5_gt.png}
+  \includegraphics[width=.148\textwidth]{gambar/comp_with_gt/robot_5_res.png} \hfill%
+  \includegraphics[width=.16\textwidth]{gambar/comp_with_gt/robot_6_gt.png}
+  \includegraphics[width=.16\textwidth]{gambar/comp_with_gt/robot_6_res.png}
+  \\[\medskipamount]
+  \includegraphics[width=.11\textwidth]{gambar/comp_with_gt/robot_7_gt.png}
+  \includegraphics[width=.11\textwidth]{gambar/comp_with_gt/robot_7_res.png} \hfill%
+  \includegraphics[width=.155\textwidth]{gambar/comp_with_gt/robot_8_gt.png}
+  \includegraphics[width=.155\textwidth]{gambar/comp_with_gt/robot_8_res.png} \hfill%
+  \includegraphics[width=.17\textwidth]{gambar/comp_with_gt/robot_9_gt.png}
+  \includegraphics[width=.17\textwidth]{gambar/comp_with_gt/robot_9_res.png}
+  \\[\medskipamount]
+  \includegraphics[width=.12\textwidth]{gambar/comp_with_gt/robot_10_gt.png}
+  \includegraphics[width=.12\textwidth]{gambar/comp_with_gt/robot_10_res.png} \hfill%
+  \includegraphics[width=.137\textwidth]{gambar/comp_with_gt/robot_11_gt.png}
+  \includegraphics[width=.137\textwidth]{gambar/comp_with_gt/robot_11_res.png} \hfill%
+  \includegraphics[width=.18\textwidth]{gambar/comp_with_gt/robot_12_gt.png}
+  \includegraphics[width=.18\textwidth]{gambar/comp_with_gt/robot_12_res.png}
+  \centering
+  \captionsetup{justification=centering, margin=2cm}
+  \caption{Comparison Between Ground Truth and Detection Result on Every Type of Robot in Dataset}
+  \label{fig:comparisongtandresult}
 \end{figure}
