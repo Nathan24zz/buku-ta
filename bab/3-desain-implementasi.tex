@@ -4,15 +4,96 @@
 % Ubah bagian-bagian berikut dengan isi dari desain dan implementasi
 
 This chapter describes the design and implementation of the system that has been created.
-As seen in Figure \ref{fig:block-diagram}, it starts with making a new dataset. Then, training pose estimation models for humanoid robot with that new dataset.
-After that, we search the best model for both human and humanoid robot. Lastly, we make a main program that compares the suitability between humanoid robot pose and human pose.
-
+As seen in Figure \ref{fig:block-diagram}, there are 2 main block diagrams. The left one is a block diagram for RECORD mode and the right one is for PLAY mode.
+In RECORD mode, it starts with a human image and then does pose estimation to get human keypoints. After that, we convert the angle between 2 keypoints into a servo value so we can move the robot's servo to mimic human movement and save it for PLAY mode.
+On the other hand, in PLAY mode, the input is 2: human image and humanoid robot image. Then, we perform pose estimation for both images. Before doing keypoint normalization, we have to choose 6 human keypoints based on humanoid robot keypoints. Lastly, we compare those keypoints and get the result.
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=1.1]{gambar/diagram-block.png}
+  \includegraphics[scale=1.25]{gambar/diagram-block-revisi.png}
   \caption{Block Diagram of Workflow.}
   \label{fig:block-diagram}
 \end{figure}
+In the section that follows, each block is explained in further depth. Note that maybe there is a merge explanation if we use the same technique for different blocks. For instance, a block that sends a human image to the client and the block that send a robot image to the client will be merged to become just send an image to the client.
+
+
+\section{Input Image}
+\label{sec:input-image}
+
+The input image that is fed into both models (human and humanoid robot) is 640x480 pixels with RGB channels. The device for getting the image is the Logitech C920 Webcam. We use OpenCV library to open the camera and capture the image.
+
+
+\section{Human Pose Estimation}
+\label{sec:human-pose-estimation}
+
+Since there are already many pose estimation models for humans out there, we do not need to retrain them and just compare them to find the best model. In order to compare the models, we selected a paper for reference.
+So evaluation metrics based on paper and real detection results will be shown in Chapter \ref{chap:resultsandiscussion} but for inference time, we will try in NUC i5. The models that we compare include OpenPose, MediaPipe, and YOLO-pose.
+The input for these models is an RGB image and the output is the location of human keypoints.
+
+
+\section{Send Image to Client}
+\label{sec:send-image-to-client}
+
+Our main program uses websites to interact with users because of its flexibility on any platform, the website view can be seen in Figure \ref{fig:websiteview}. So there is a Javascript client and a Python Server that communicate via \emph{socketio}.
+The server will send human image to the client so we can adjust our position in the camera. This is done to enable the robot to capture the entire human pose.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.7]{gambar/web.png}
+  \caption{Website View.}
+  \label{fig:websiteview}
+\end{figure}
+The main program is divided into two modes, RECORD mode and PLAY mode. In RECORD mode, a human as a trainer gives a series of movements and will be followed by a humanoid robot, as well as robot saves these movements to use in PLAY mode later.
+Meanwhile, in the PLAY mode, the robot acts as a trainer and performs a series of movements according to the movements previously stored in RECORD mode. Human will follow the robot's movement while the robot is also saving both human and robot images and comparing them later.
+
+After getting human's keypoint, the server will visualize the detection result and send it as a buffer to the client.
+On the client side, we use ReactJS library. There are four buttons: RECORD, PLAY, START, and STOP button. The RECORD and PLAY button indicates the modes in the main program, while the START and STOP button tell us when the mode is started or stopped.
+There is a different color after we click on a button to indicate that we have pressed that button.
+Apart from that, there are also two images that show human and robot image, actually in RECORD mode there is only one image (human image), while in PLAY mode there are 2 images (human and robot image). 
+In our program, we define that client and server communicate through port 5555, where server can send image to client and client can send some data back to the server like current mode and time to start or stop the mode.
+We use the \emph{useEffect} function to indicate if there is a change in a particular variable and do something like converting the image from the buffer to a string in order to display it on the HTML image tag.
+
+
+\section{Convert Angle to Servo Value}
+\label{sec:convert-angle-to-servo-value}
+
+This section and Section \ref{sec:move-robot-servo} are triggered when the button RECORD and START is pressed on the website, so the client sends this information to the server and it does the calculation. 
+To be able to move a robot's upper body like human movement, we need to obtain the angle between 2 keypoint using the \emph{arc tangent} function with the input \emph{\{x,y\}} keypoint coordinate.
+Since we use MediaPipe Pose to detect human keypoints based on the result and discussion in Section \ref{sec:humanmodelcomparison}, the output is a normalized point, so we multiplied the x and y coordinates with the width and height image respectively to get the real pixel value.
+Afterward, we subtract the second y keypoint value with the first y keypoint value and divided it by the second x keypoint value subtract with the first x keypoint value, and input the result to the \emph{arc tangent} function, as shown in Equation \ref{eq:arctan}.
+\begin{equation}
+  \label{eq:arctan}
+  angle = \arctan \left(\frac{Y_2 - Y_1}{X_2 - X_1}\right)
+\end{equation}
+
+There are four angles we want to retrieve which are the angles from the shoulder to the elbow (right and left) and also the elbow to wrist (right and left) in order to robot can mimic upper body human movement.
+If we look at MediaPipe Pose Landmark in Figure \ref{fig:mediapipe-landmark}, 6 keypoints that become our concern are 11, 12 for shoulders, 13, 14 for elbows, 15, and 16 for wrists. 
+We get the right shoulder values by entering landmark 14 as the second argument and landmark 12 as the first argument of the \emph{arc tangent} function. This also applies to get the left shoulder angle value by entering landmarks 13 and 11 respectively. 
+It is slightly different to obtain the elbow angles because we want its angle to be relative to the shoulder angle by subtracting its angle from the shoulder angle. We also apply limitations for each angle to keep the servo safe and not hit the robot body or other servo as seen in Table \ref{tb:robot-servos}.
+
+\begin{longtable}{ccc}
+  \caption{Robot Servos Limitations.}
+  \label{tb:robot-servos}\\
+  \hline
+  \rowcolor[HTML]{C0C0C0}
+  \textbf{Joint Angle} & \textbf{Motion} & \textbf{Range (deg)} \\
+  \hline
+  LShoulderPitch       & Left shoulder joint right and left    & -110 to 30  \\
+  RShoulderPitch       & Right shoulder joint right and left   & -30 to 110 \\
+  LElbowRoll           & Left Elbow joint front and back       & -120 to 10  \\
+  RElbowRoll           & Left Elbow joint front and back       & -10 to 120  \\
+  \hline
+\end{longtable}
+
+
+\section{Move Robot's Servos}
+\label{sec:move-robot-servo}
+
+explain ROS and rqt
+
+
+\section{Save Servos Value}
+\label{sec:save-servo-value}
+
+save to akushon format
 
 \section{Make New Dataset}
 \label{sec:makenewdataset}
@@ -297,16 +378,16 @@ In that formula, Fxy and Gxy are two pose vectors to be compared after L2 normal
 \section{Making Main Program}
 \label{sec:makingmainprogram}
 
-Our main program uses websites to interact with users because of its flexibility on any platform, the website view can be seen in Figure \ref{fig:websiteview}. So there is a Javascript client and a Python Server that communicate via \emph{socketio}.
-The main program is divided into two modes, RECORD mode and PLAY mode. In RECORD mode, a human as a trainer gives a series of movements and will be followed by a humanoid robot, as well as robot save these movements to use in PLAY mode later.
-Meanwhile, in the PLAY mode, the robot acts as a trainer and performs a series of movements according to the movements previously stored in RECORD mode. Human will follow the robot's movement while the robot is also saving both human and robot images.
+% Our main program uses websites to interact with users because of its flexibility on any platform, the website view can be seen in Figure \ref{fig:websiteview}. So there is a Javascript client and a Python Server that communicate via \emph{socketio}.
+% The main program is divided into two modes, RECORD mode and PLAY mode. In RECORD mode, a human as a trainer gives a series of movements and will be followed by a humanoid robot, as well as robot save these movements to use in PLAY mode later.
+% Meanwhile, in the PLAY mode, the robot acts as a trainer and performs a series of movements according to the movements previously stored in RECORD mode. Human will follow the robot's movement while the robot is also saving both human and robot images.
 So there will be two cameras, one camera to record human movement (located on the robot's head) and the other to record robot movement (located from the human side facing the robot), the distance between them approximately 1 - 1.5 meters, as shown in Figure \ref{fig:posecomparisonside}.
-\begin{figure}[ht]
-  \centering
-  \includegraphics[scale=0.76]{gambar/web.png}
-  \caption{Website View.}
-  \label{fig:websiteview}
-\end{figure}
+% \begin{figure}[ht]
+%   \centering
+%   \includegraphics[scale=0.76]{gambar/web.png}
+%   \caption{Website View.}
+%   \label{fig:websiteview}
+% \end{figure}
 
 \begin{figure}[ht]
   \centering
