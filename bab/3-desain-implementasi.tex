@@ -164,8 +164,24 @@ Lastly, the \verb|"start_delay"| field denotes any delay before the action begin
 \end{lstlisting}
 
 
-\section{Make New Dataset}
-\label{sec:makenewdataset}
+\section{Humanoid Robot Pose Estimation}
+\label{sec:humanoid-robot-pose-estimation}
+
+This explanation is intended for the right block diagram from Figure \ref{fig:block-diagram} or we can also say as the RECORD mode. The difference between the PLAY and RECORD modes lies in the number of cameras used.
+So there will be two cameras, one camera to record human movement (located on the robot's head) and the other to record robot movement (located from the human side facing the robot), the distance between them approximately 1 - 1.5 meters, as shown in Figure \ref{fig:pose-comparison-side}.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.3]{gambar/pose-comparison.jpeg}
+  \caption{Pose Comparison from Side.}
+  \label{fig:pose-comparison-side}
+\end{figure}
+
+This section immediately begins with the estimation pose for humanoid robot because the explanation regarding the previous block has been explained in the previous section.
+Since there are not many pose estimation models for humanoid robots out there yet, we need to retrain them or use transfer learning from the model that supposes to estimate human pose.
+Therefore, the first step is making a new humanoid robot pose dataset.
+
+\subsection{Make New Dataset}
+\label{subsec:make-new-dataset}
 
 This new dataset is a merge of NimbRo's Humanoid Robot Pose dataset and Ichiro's dataset. NimbRo's dataset contains both single and multiple robots to
 simulate RoboCup's real conditions. They also gathered from RoboCup Humanoid League YouTube videos, their own internal videos, and ROS bags. 
@@ -181,14 +197,12 @@ However, when we tried to export the dataset into COCO format, it failed (e.g. c
 a web-based image annotation tool designed for versatility and efficiently labeling images to create training data. Regarding the number of keypoints in each robot, we followed NimbRo's dataset.
 There are six keypoints including head, trunk, hands, and feet. We stick to that idea because we want to try the model's performance and inference time with fewer keypoints first and if we are confident enough, we will increase the number of keypoints later.
 
-
-\section{Training Pose Estimation Model for Humanoid Robot}
-\label{sec:trainingrobot}
+\subsection{Training Pose Estimation Model for Humanoid Robot}
+\label{subsec:training-robot}
 
 All of the training processes in this study were primarily conducted on a DGX-A100 server computer and written in the Python programing language. The specific configuration explains in Table \ref{tb:dgxa100}.
 From this base specification, we are allocated a Jupiter notebook container with
 python and many libraries preinstalled with following allocated resources explained in Table \ref{tb:allocatedcontainer}.
-
 \begin{longtable}{|c|c|}
   \caption{DGX-A100 Specification.}
   \label{tb:dgxa100}\\
@@ -217,8 +231,8 @@ python and many libraries preinstalled with following allocated resources explai
   \hline
 \end{longtable}
 
-\subsection{NimbRo's Model}
-\label{subsec:trainingnimbromodel}
+\subsubsection{NimbRo's Model}
+\label{subsubsec:training-nimbro-model}
 
 The hyperparameters that are used to train NimbRo's model followed the description in their paper.
 This model is trained using the AdamW optimizer with a learning rate of 10\textsuperscript{-4},
@@ -227,153 +241,112 @@ Note that the encoder is initialized by pre-trained ResNet weights on ImageNet.
 We also use data augmentation that includes random scaling and random translation during training \parencite{amini2021}.
 We do not use random horizontal flip and random rotation like NimbRo did because in our case it will make the training result worse.
 
-The main program for training is already made by them named \emph{main.py} using PyTorch framework, we just need to run it on Jupyter Notebook file or Terminal and adjust the arguments for our needs
-as seen in Command \ref{lst:trainingnimbro}. The value of argument \emph{config} is a file where we store all the hyperparameters, number of epochs, dataset name for training and testing, and many others, File \ref{lst:confignimbro} is one of the example.
-Second argument is a directory path where we save training result and last argument is a directory path where the dataset takes place.
-
-\begin{lstlisting}[
-  language={},
-  caption={Training NimbRo command.},
-  label={lst:trainingnimbro}
-]
-python src/main.py --config experiments/train_merge_2.yaml --output_dir ichiro_nimbro_merge --dataset_path dataset/hrp/
-\end{lstlisting}
-
+The main program for training is already made by them named \emph{main.py} using PyTorch framework, we just need to run it on Jupyter Notebook file or Terminal and adjust the arguments for our needs.
+In their script, there is an argument name \verb|config| which it is referred to a file where we store all the hyperparameters, number of epochs, dataset name for training and testing, and many others. 
+Another argument tells us about a directory path where we save training results and the dataset takes place.
 \lstinputlisting[
   language={},
   caption={Example YAML file config for NimbRo's Training.},
   label={lst:confignimbro}
 ]{files/train_nimbro.yaml}
+File \ref{lst:confignimbro} is an example of YAML configuration file for NimbRo Training. This is not a complete version, but we included parts that were changed frequently during the training process.
+The "SEED" is set to 42, ensuring reproducibility of random processes. The "DEVICE" is specified as "cuda", indicating the utilization of a GPU for computation.
+\verb|"BATCH_SIZE"| is set to 16, meaning that 16 data samples will be processed together in each training iteration. If we make \emph{batch size} value larger, it requires more memory to store the input data, intermediate activations, and gradients during training.
+If the available memory is limited, increasing the batch size beyond the memory capacity may lead to out-of-memory errors or cause the training process to slow down.
+However, larger batch sizes can speed up the training process as more samples are processed in parallel. It also effect the generalization capability of the model.
+Smaller batch sizes tend to provide more stochasticity during training, which can act as a form of regularization and help prevent overfitting. In contrast, larger batch sizes may result in a smoother optimization process, potentially leading to faster convergence but with a slightly increased risk of overfitting.
+The \verb|"NUM_WORKERS"| is set to 2, indicating that two worker processes will be used to load and preprocess the data.
 
-\subsection{YOLO-pose}
-\label{subsec:trainingyolopose}
+The training process will run for 200 epochs as specified by \verb|"NUM_EPOCHS"|. When training for more epochs, the model undergoes more iterations and updates, allowing it to refine its learned representations and adjust its parameters based on the training data.
+This can lead to improved model performance as the model converges towards an optimal solution and achieves higher accuracy on both the training and validation data. However, it is important to be cautious of the risk of overfitting. Overfitting occurs when the model becomes too specialized to the training data and fails to generalize well to unseen data.
+Increasing the number of epochs without proper regularization techniques can increase this risk. The model may start to memorize the training data instead of learning generalizable patterns, resulting in poor performance on new data. Additionally, training for a greater number of epochs requires more time.
+The \verb|"PRINT_FREQ"| is set to 100, meaning that training progress and relevant information will be printed or displayed every 100 iterations.
+
+The "DATASET" section contains settings related to the dataset used for training.
+The \verb|"DATASET.TRAIN"| specifies the name or identifier of the training dataset folder, and \verb|"DATASET| \verb|.TEST"| indicates the name of the validation dataset folder. The \verb|"NUM_KEYPOINTS"| is set to 6, denoting the number of keypoints or landmarks in the dataset, while \verb|"NUM_LIMBS"| is set to 5, representing the number of limbs or connections between keypoints.
+The \verb|"MAX_NUM_| \verb|DETECTIONS"| is set to 10, indicating the maximum number of robots in the dataset. The "SIGMA" parameter is set to 2.0, which is used in generating heatmaps. For augmentation, The "FLIP" is set to 0.0, meaning there will be no horizontal flipping of the input data. The "TRANSLATE" is set to 0.4, allowing the data to be translated by up to 40\% of its size.
+The "SCALE" parameter represents a range of scaling applied to the input data, with a minimum scale of 0.5 and a maximum scale of 1.5. The "ROTATION" is set to 0, indicating no rotation will be applied to the input data. Additionally, the \verb|"INPUT_SIZE"| is set to [384, 384], representing the desired input size of the model, while the \verb|"OUTPUT_SIZE"| is set to [192, 192], indicating the desired output size.
+
+\subsubsection{YOLO-pose}
+\label{subsubsec:training-yolo-pose}
 
 Before we jumped into training process, we must change format of our newly dataset from COCO to YOLO. Differ from COCO format, YOLO format gives keypoint confidence or visibility flag 2 for either visible or occluded keypoint
 and if it is outside the field of view, the value is set to zero. However, COCO format defines visibility flag as v=0: not labeled, v=1: labeled but not visible, and v=2: labeled and visible. So, we change the definition of
-v=1 and v=2 become just v=2 in YOLO format and keep v=0.
+v=1 and v=2 become just v=2 in YOLO format and keep v=0. As seen in Pseudocode \ref{lst:change-keypoint-format}, where we make a function called \verb|change_keypoint_format| which has 2 input arguments and return new keypoints with YOLO format. 
 Beside keypoint format differences, bounding-box format between them is also different. COCO defines a bounding-box as follow: x (top left), y (top left), width, and height. On the other hand,
-bounding-box format in YOLO is: x (center), y (center), width, and height also all of them need to be normalized. Thus, we need to add 1/2 width to x, 1/2 height to y, and normalize them.
-All of that processes can be seen in Code \ref{lst:changecocotoyolo}. 
+bounding-box format in YOLO is: x (center), y (center), width, and height also all of them need to be normalized. Thus, we need to add 1/2 width to x, 1/2 height to y like in Pseudocode \ref{lst:change-bbox-format}, and normalize them by multiplying new x and y with 1/width and 1/height respectively. 
 
 \lstinputlisting[
-  language=Python,
-  caption={Change COCO to YOLO format program.},
-  label={lst:changecocotoyolo}
-]{program/coco-to-yolo.py}
+  language={},
+  caption={Change Keypoint Format From COCO to YOLO.},
+  label={lst:change-keypoint-format}
+]{program/change-keypoint.txt}
+
+\lstinputlisting[
+  language={},
+  caption={Change Bounding Box Format From COCO to YOLO.},
+  label={lst:change-bbox-format}
+]{program/bbox-norm.txt}
 
 The hyperparameters to train YOLO-pose followed the description in their GitHub named \emph{hyp.pose.yaml}.
 We use SGD optimizer with a cosine scheduler. The base learning rate is set to 10\textsuperscript{-2}, batch size 16,
 and weight decay of 5\textsuperscript{-4} for total 150 epochs. There are also data augmentation like random scale ([0.5, 1.5]),
-random translation [-10, 10], random flip with probability 0.5, mosaic augmentation with probability 1, and various color augmentations.
-It is the same with Section \ref{subsec:trainingnimbromodel}, actually, the main program for training has been provided using PyTorch framework too, but the program is intended for humans with 17 keypoints.
+random translation [-10, 10], mosaic augmentation with probability 1, and various color augmentations.
+It is the same with previous section, the main program for training has been provided using PyTorch framework too, but the program is intended for humans with 17 keypoints.
 If we run it directly with our dataset with 6 keypoints, an error will be raised. Therefore, a little bit of code needs to be changed to make the training process can be run.
-After that, we can run Command \ref{lst:trainingyolo}. We will not go into all the arguments, only some of them. 
-A file containing the dataset path, number of keypoint, and class name is on the first argument. The second argument explains the full network architecture of YOLO-pose and 
-argument \emph{hyp} is a file contains all the hyperparameters that are used.
 
-\begin{lstlisting}[
-  language={},
-  caption={Training YOLO-pose command.},
-  label={lst:trainingyolo}
-]
-python train.py --data data/robot_kpts.yaml --cfg cfg/yolov7-w6-robot-pose.yaml --weights weights/yolov7-w6-pose.pt --batch-size 8 --kpt-label --device 0 --name yolov7-pose-merge --hyp data/hyp.pose.yaml --epochs 150
-\end{lstlisting}
-
-\subsection{Keypoint RCNN}
-\label{subsec:trainingrcnn}
+\subsubsection{Keypoint RCNN}
+\label{subsubsec:training-rcnn}
 
 The Keypoint RCNN training is done on Jupyter Notebook directly using the PyTorch framework as well.
 Before starting the training process, we also need to convert the dataset format first.
 Actually, this format is almost the same as the YOLO format (each image has its own label), but the difference lies in the bounding box.
-Where the format of the bounding-box is the top left point and the bottom right point. We can do that by running Code \ref{lst:changecocotorcnn}.
+Where the format of the bounding-box is the top left point and the bottom right point. We can obtain bottom right point by adding bounding box width to x coordinate and its height to y coordinate.
 
-\lstinputlisting[
-  language=Python,
-  caption={Change COCO to RCNN format program.},
-  label={lst:changecocotorcnn}
-]{program/coco-to-rcnn.py}
-
-The training process starts with loading our dataset and specifying the augmentation technique we are using. We use \emph{albumentations} library for augmenting our dataset.
-At first, we apply random brightness and contrast. Nevertheless, the model seems to become underfitting, so we try just random brightness and contrast as seen in Code \ref{lst:augmentationrcnn}. 
-Fortunately, the result seems pretty good after that.
-
-\lstinputlisting[
-  language=Python,
-  caption={Augmentation technique used in RCNN Training.},
-  label={lst:augmentationrcnn}
-]{program/rcnn-augmentation.py}
-
-Code snippet \ref{lst:rcnnmodeldefinition} is a function that returns the Keypoint RCNN model.
-When calling the function, we can fill the first argument with value 6
-and leave the second argument blank. After the training process is complete, we can call the function again and fill in the second argument with the path of the resulting model for keypoint detection process.
+The training process starts with loading our dataset and specifying the augmentation technique we are using. We use \emph{albumentations} library from Python for augmenting our dataset.
+At first, we apply random brightness, contrast, and rotation. Nevertheless, the model seems to become underfitting, so we try just random brightness and contrast. Fortunately, the result seems pretty good after that.
+Before we declare RCNN model using torchvision library, we need anchors that will be an input argument. 
 By default, the \emph{AnchorGenerator} class in PyTorch has 3 different sizes (128, 256, 512) and 3 different aspect ratios (0.5, 1.0, 2.0).
-We have extended those parameters, \emph{AnchorGenerator} to (32, 64, 128, 256, 512) and \emph{aspect ratios} to (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0).
-Note that, \emph{num classes} argument is set to two because the first class is background and object is the second class.
+We have extended those parameters, \verb|sizes| to (32, 64, 128, 256, 512) which means that anchor boxes with different base sizes will be generated. These base sizes represent the approximate dimensions (in pixels) of the objects that the algorithm will try to detect.
+The anchor generator will create anchors with these base sizes at different positions in the image.
+The \verb|aspect_ratios| specifies the aspect ratios of the anchor boxes. Aspect ratio refers to the ratio of the width to the height of the anchor box.
+The \verb|aspect_ratios| argument is set to (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0), which means anchor boxes with these aspect ratios will be generated. By combining different base sizes and aspect ratios, the anchor generator can produce a diverse set of anchor boxes,
+which are used as reference bounding boxes during the object detection process. These anchor boxes are later compared to the ground truth bounding boxes of objects in the training data to determine the location of objects.
+Note that, \verb|num classes| argument is set to two because the first class is background and object is the second class.
 In this training, we use SGD optimizer with learning rate 10\textsuperscript{-3}, batch size 3, and weight decay of 5\textsuperscript{-4} for 50 epochs.
 
-\lstinputlisting[
-  language=Python,
-  caption={Keypoint RCNN model definition in PyTorch.},
-  label={lst:rcnnmodeldefinition}
-]{program/rcnn-model.py}
+\subsection{Finding the Best Model for Humanoid Robot Pose Estimation}
+\label{subsec:finding-best-model-humanoid-robot}
 
-
-\section{Finding the Best Model for Humanoid Robot Pose Estimation}
-\label{sec:findingbestmodelhumanoidrobot}
-
-We compare the three models on Section \ref{sec:trainingrobot} based on \emph{mAP} (mean Average Precision), \emph{mAR} (mean Average Recall),
+After retraining 3 models on Section \ref{subsec:training-robot}, we try to find the best one for our case. We compare them based on \emph{mAP} (mean Average Precision), \emph{mAR} (mean Average Recall),
 real detection result, and inference time on devices with limited computing capabilities (e.g. NUC i5).
 The comparison table of \emph{mAP}, \emph{mAR}, and real detection result of those models are in Chapter \ref{chap:resultsandiscussion}. In this section we just talk about the time inference.
-To know the time that it takes for the model to do the detection, we just need to subtract the time before and after the model does keypoint detection like Code \ref{lst:timedifference}.
+To know the time that it takes for the model to do the detection, we just need to subtract the time before and after the model does keypoint detection like Pseudocode \ref{lst:time-difference}.
+In this pseudocode, the \verb|get_current_time()| function is used as a placeholder to represent the retrieval of the current time. The keypoint detection process is performed in the indicated section.
+The \verb|elapsed_time| variable is calculated by subtracting the starting time from the current time. Finally, the elapsed time is printed with an appropriate message.
 
 \lstinputlisting[
   language=Python,
-  caption={Time difference program.},
-  label={lst:timedifference}
-]{program/time-difference.py}
+  caption={Time difference Pseudocode.},
+  label={lst:time-difference}
+]{program/time-difference.txt}
 
-We attempt converting our models from PyTorch Model to OpenVINO in order to speed up the time inference. Before that, we convert it to ONNX first like Figure \ref{fig:pytorch-to-openvino}.
-The steps for converting PyTorch Model to ONNX can be seen in Code \ref{lst:convertpytorchtoonnx}. At first, we must ensure that the model is in inference mode by calling \emph{eval} function.
+We also attempt converting our models from PyTorch Model to OpenVINO in order to speed up the time inference. Before that, we convert it to ONNX first like Figure \ref{fig:pytorch-to-openvino}.
+At first, we must ensure that the model is in inference mode by calling \emph{eval} function in Python code.
 Next, we create that dummy input variable. The call to \emph{torch.onnx.export} function runs the model once to trace its execution and then exports the traced model to the specified file.
-The resulting \emph{model-name.onnx} file contains a binary protocol buffer which contains both the network structure and parameters of the model exported.
+The resulting onnx file contains a binary protocol buffer which contains both the network structure and parameters of the model exported.
 After that, we use Model Optimizer to convert the ONNX model to OpenVINO IR with FP16 precision. To install Model Optimizer in Python is pretty simple, just run
 \emph{pip install openvino-dev} in Terminal and to verify the package is properly installed, we run the command \emph{mo -h}. We will see the help message for Model Optimizer if installation finished successfully.
-After we run Command \ref{lst:convertonnxtoopenvino}, in directory named model, there are three files with \emph{bin}, \emph{mapping}, and \emph{xml} extension.
-If we want to run OpenVINO IR Model in OpenVINO Runtime, look Code \ref{lst:runopenvino}. Note that, the model path must contain three files earlier.
+After running that command, there is a directory that contains three files with \emph{bin}, \emph{mapping}, and \emph{xml} extension.
+If we want to run OpenVINO IR Model in OpenVINO Runtime, we must make sure that the path for model must contain three files earlier.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=0.45]{gambar/pytorch-onnx-openvino.jpg}
+  \includegraphics[scale=0.4]{gambar/pytorch-onnx-openvino.jpg}
   \caption{Flow of converting PyTorch Model to OpenVINO.}
   \label{fig:pytorch-to-openvino}
 \end{figure}
 
-\lstinputlisting[
-  language=Python,
-  caption={Convert from PyTorch Model to ONNX program.},
-  label={lst:convertpytorchtoonnx}
-]{program/convert_pytorch-to-onnx.py}
-
-\begin{lstlisting}[
-  language={},
-  caption={Convert ONNX to OpenVINO command.},
-  label={lst:convertonnxtoopenvino}
-]
-mo --input_model 'model-name.onnx' --compress_to_fp16 --output_dir 'model'
-\end{lstlisting}
-
-\lstinputlisting[
-  language=Python,
-  caption={Run OpenVINO IR Model in OpenVINO Runtime.},
-  label={lst:runopenvino}
-]{program/load-openvino.py}
-
-
-\section{Finding the Best Model for Human Pose Estimation}
-\label{sec:findingbestmodelhumanrobot}
-
-This section is slightly different from the previous section in that we do not need to retrain the model, we can just use existing models.
-In order to compare the models, we selected a paper for reference. So evaluation metrics based on paper and real detection results will be shown in Chapter \ref{chap:resultsandiscussion} but for inference time, we will also try in NUC i5 with same methodology like Section \ref{sec:findingbestmodelhumanoidrobot}.
 
 \section{Comparing the Suitability Between Humanoid Robot Pose and Human Pose}
 \label{sec:comparingsuitability}
@@ -450,7 +423,7 @@ In that formula, Fxy and Gxy are two pose vectors to be compared after L2 normal
 % Our main program uses websites to interact with users because of its flexibility on any platform, the website view can be seen in Figure \ref{fig:websiteview}. So there is a Javascript client and a Python Server that communicate via \emph{socketio}.
 % The main program is divided into two modes, RECORD mode and PLAY mode. In RECORD mode, a human as a trainer gives a series of movements and will be followed by a humanoid robot, as well as robot save these movements to use in PLAY mode later.
 % Meanwhile, in the PLAY mode, the robot acts as a trainer and performs a series of movements according to the movements previously stored in RECORD mode. Human will follow the robot's movement while the robot is also saving both human and robot images.
-So there will be two cameras, one camera to record human movement (located on the robot's head) and the other to record robot movement (located from the human side facing the robot), the distance between them approximately 1 - 1.5 meters, as shown in Figure \ref{fig:posecomparisonside}.
+% So there will be two cameras, one camera to record human movement (located on the robot's head) and the other to record robot movement (located from the human side facing the robot), the distance between them approximately 1 - 1.5 meters, as shown in Figure \ref{fig:posecomparisonside}.
 % \begin{figure}[ht]
 %   \centering
 %   \includegraphics[scale=0.76]{gambar/web.png}
@@ -458,12 +431,12 @@ So there will be two cameras, one camera to record human movement (located on th
 %   \label{fig:websiteview}
 % \end{figure}
 
-\begin{figure}[ht]
-  \centering
-  \includegraphics[scale=0.32]{gambar/pose-comparison.jpeg}
-  \caption{Pose Comparison from Side.}
-  \label{fig:posecomparisonside}
-\end{figure}
+% \begin{figure}[ht]
+%   \centering
+%   \includegraphics[scale=0.32]{gambar/pose-comparison.jpeg}
+%   \caption{Pose Comparison from Side.}
+%   \label{fig:posecomparisonside}
+% \end{figure}
 
 On the client side, we use ReactJS library. There are four buttons: RECORD, PLAY, START, and STOP button. The RECORD and PLAY button indicates the modes in the main program, while the START and STOP button tell us when the mode is started or stopped.
 Besides that, there are also two images that show human and robot image that is sent from the server side. As shown in Code \ref{lst:clientside}, client and server communicate through port 5555 (line 5).

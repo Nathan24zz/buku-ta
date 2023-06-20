@@ -7,8 +7,8 @@ NUM_EPOCHS: 200
 PRINT_FREQ: 100
 
 DATASET:
-  TRAIN: merge_train_2
-  TEST: merge_val_2
+  TRAIN: name_of_training_folder
+  TEST: name_of_testing_folder
   NUM_KEYPOINTS: 6
   NUM_LIMBS: 5
   MAX_NUM_DETECTIONS: 10
@@ -25,25 +25,4 @@ DATASET:
   OUTPUT_SIZE:
     - 192
     - 192
-
-MODEL:
-  NUM_SCALES: 2
-  FINAL_KERNEL: 3
-  BACKBONE: resnet18
-
-LOSS:
-  USE_WEIGHT: true
-
-TRAIN:
-  OPTIMIZER: adamw
-  LR: 1e-4
-
-TEST:
-  KEEP_RATIO: true
-  PROJECT: true
-  NMS_KERNEL: 3
-  DETECTION_THRESHOLD: 0.1
-  LIMB:
-    NUM_MIDPOINTS: 20
-    THRESHOLD: 0.05
-    IGNORE_FEW_PARTS: false
+...

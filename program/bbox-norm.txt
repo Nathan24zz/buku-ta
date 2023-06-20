@@ -1,0 +1,18 @@
+function bounding_box_normalization(bbox, img_size):
+    lx, ly, w, h = bbox
+    x = lx + (w/2)
+    y = ly + (h/2)
+    
+    width, height = img_size
+    dw = 1.0 / width
+    dh = 1.0 / height
+
+    x = x * dw
+    w = w * dw
+    y = y * dh
+    h = h * dh
+
+    return [format(x, ".6f"), 
+            format(y, ".6f"), 
+            format(w, ".6f"), 
+            format(h, ".6f")]

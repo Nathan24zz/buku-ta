@@ -1,0 +1,15 @@
+function change_keypoint_format(keypoints, img_size):
+    kpts = []
+    width, height = img_size
+    
+    for i in range(0, length of keypoints, 3):
+        x, y, v = keypoints[i:i+3]
+        if v is equal to 0:
+            kpts = kpts + [format(x/width, ".6f"), 
+                           format(y/height, ".6f"), 
+                           format(v, ".6f")]
+        else:
+            kpts = kpts + [format(x/width, ".6f"), 
+                           format(y/height, ".6f"), 
+                           format(2, ".6f")]
+    return kpts
