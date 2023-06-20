@@ -78,6 +78,9 @@ It is slightly different to obtain the elbow angles because we want its angle to
   \hline
   LShoulderPitch       & Left shoulder joint right and left    & -110 to 30  \\
   RShoulderPitch       & Right shoulder joint right and left   & -30 to 110 \\
+  \rowcolor[HTML]{C0C0C0}
+  \textbf{Joint Angle} & \textbf{Motion} & \textbf{Range (deg)} \\
+  \hline
   LElbowRoll           & Left Elbow joint front and back       & -120 to 10  \\
   RElbowRoll           & Left Elbow joint front and back       & -10 to 120  \\
   \hline
@@ -87,13 +90,79 @@ It is slightly different to obtain the elbow angles because we want its angle to
 \section{Move Robot's Servos}
 \label{sec:move-robot-servo}
 
-explain ROS and rqt
+The program to move the robot's servos takes the same place as the program for the server. Our main program uses ROS2 with Python language. To be able to run the server and ROS2 program simultaneously, we need a separate thread, so the server program does not block the ROS2.
+In the ROS2 framework, every package has its own functionality. On this occasion, we divide the task to move the robot's servo into 2 packages. The first one is named \emph{motion matching} where the server program and angle conversion to servo value happen, the other one is \emph{tachimawari},
+a package that provides a DYNAMIXEL's joints management library for a ROS 2 project. This package name comes from a Japanese word that means motion. Every package has a node with the package's name like Figure \ref{fig:relation-node-record-mode}.
+We can see this node relationship from rqt graph or ROS2 client interfaces, but we choose rqt graph because it is more visual.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.62]{gambar/rqt_without_akushon.png}
+  \caption{Relationship Between Nodes in RECORD Mode.}
+  \label{fig:relation-node-record-mode}
+\end{figure}
+
+Each node communicates with each other through a topic. There are 2 topics in RECORD mode, which are \verb|joint/set_joints| and \verb|joint/current_joints|. 
+After getting desired servos angle from the previous section, we just need to publish it to \emph{tachimawari} node and it will move the servos. In the \emph{motion matching} node, there is a publisher that publishes servos angle to \verb|joint/set_joints| topic after the detection process and calculation is done, and also a subscriber in \emph{tachimawari} node that subscribes
+to the same topic which collects the data that is published from the publisher. \verb|joint/set_joints| topic uses an interface like code snippet \ref{lst:set-joint-msg}, where there are \verb|control_type| variable with type integer and an array with Joint type, each joint consist of id and position like code snippet \ref{lst:joint-msg}.
+\begin{lstlisting}[
+  language={},
+  caption={Joint msg.},
+  label={lst:joint-msg}
+]
+uint8 id
+float32 position
+\end{lstlisting}
+
+\begin{lstlisting}[
+  language={},
+  caption={SetJoints msg.},
+  label={lst:set-joint-msg}
+]
+int8 control_type 4
+Joint[] joints
+\end{lstlisting}
+
+In \verb|tachimawari_node| there is \verb|joint_node| that publishes the current joints every 8ms (it is used in the following section) and has a subscriber that listens to joints that we want to move. 
+In order to move servos to the value that we want, we must enable the torque of all servos first. Then we make a command in array form that contains the servo's id and our desired value or target value (16 bytes) that split into 2 * 8 bytes.
+For example, our target value is 512 (in binary is equal to \verb|00000010 00000000|), and the message that we send is 2 (\verb|00000010|) and 0 (\verb|00000000|). We can acquire that by performing bitwise AND and bitwise right shift. The bitwise AND operation is performed between the target value and \verb|0xFF|, which is represented as \verb|00000000 11111111| in binary.
+Since \verb|0xFF| has 0 bits in the higher byte and 1 bits in the lower byte, the result of the operation is the lower byte of the target value. On the other hand, the bitwise right shift operator is used to shift the bits of the target servo 8 positions to the right. Shifting the bits to the right by 8 positions effectively discards the lower byte, leaving only the higher byte in the result.
+It is the same when we receive the present position from the servo, the servo also sends the data in two bytes (lower and higher) and we need to combine the lower and higher bytes to reconstruct the 16-bit value representing the present position. This can be achieved by performing a left shift operation on the higher byte. Shifting it 8 bits to the left effectively moves it to the higher-order byte position.
+After that, the bitwise OR operator combines the shifted higher byte with the lower byte. This operation merges the two bytes to form a 16-bit value representing the present position.
 
 
 \section{Save Servos Value}
 \label{sec:save-servo-value}
 
-save to akushon format
+In the previous section, we discussed a little about the publisher in \emph{tachimawari} package that publishes the value of every current joint of the robot through a \verb|joint/current_joints| topic.
+There is also a subscriber in \verb|motion_matching| node that is retrieved that data and a ROS2 timer that is triggered every 0.5 seconds to save the current joints in a JSON format like code snippet \ref{lst:json-save-joints} so our robot can move according to the movements exemplified by humans. 
+The provided JSON format represents a structured data object that describes a specific action or movement sequence. There is "poses" array contains multiple pose objects, each representing a particular joint configuration during the action.
+Each pose object includes a "joints" sub-object, which lists different joints and their corresponding values. For example, \verb|"left_ankle_pitch"| has a value of 25, \verb|"left_ankle_roll"| is set to 0, and so on. These values represent the positions or angles of the respective joints.
+Each pose object also has a "name" field to identify the pose. The "pause" field specifies the duration of the pause between this pose and the next one, while the "speed" field indicates how fast this pose will be executed.
+Lastly, the \verb|"start_delay"| field denotes any delay before the action begins, and the \verb|"stop_delay"| field signifies the delay after the action finishes before the robot stops. In total, there are 20 servos in our robot, so in the actual JSON file each "joint" sub-object has 20 items with their respective joint names.
+
+\begin{lstlisting}[
+  language={},
+  caption={JSON Format to Save Joints Value.},
+  label={lst:json-save-joints}
+]
+
+  "poses": [
+    {
+      "joints": {
+        "left_ankle_pitch": 25,
+        "left_ankle_roll": 0,
+        ...
+      },
+      "name": "pose name",
+      "pause": 0,
+      "speed": 0.003
+    },
+  ],
+  "start_delay": 0,
+  "stop_delay": 0
+
+\end{lstlisting}
+
 
 \section{Make New Dataset}
 \label{sec:makenewdataset}
