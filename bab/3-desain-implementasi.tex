@@ -9,7 +9,7 @@ In RECORD mode, it starts with a human image and then does pose estimation to ge
 On the other hand, in PLAY mode, the input is 2: human image and humanoid robot image. Then, we perform pose estimation for both images. Before doing keypoint normalization, we have to choose 6 human keypoints based on humanoid robot keypoints. Lastly, we compare those keypoints and get the result.
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=1.25]{gambar/diagram-block-revisi.png}
+  \includegraphics[scale=1.23]{gambar/diagram-block-revisi.png}
   \caption{Block Diagram of Workflow.}
   \label{fig:block-diagram}
 \end{figure}
@@ -169,6 +169,8 @@ Lastly, the \verb|"start_delay"| field denotes any delay before the action begin
 
 This explanation is intended for the right block diagram from Figure \ref{fig:block-diagram} or we can also say as the RECORD mode. The difference between the PLAY and RECORD modes lies in the number of cameras used.
 So there will be two cameras, one camera to record human movement (located on the robot's head) and the other to record robot movement (located from the human side facing the robot), the distance between them approximately 1 - 1.5 meters, as shown in Figure \ref{fig:pose-comparison-side}.
+In PLAY mode, the server side sends two images so that we can know and adjust the position of humans and robots in the camera. Due to the large network delay when sending two 320x240 pixel images, when the START button is pressed,
+the server does not send the image to client again, the robot plays a series of moves stored in the previous JSON file by communicating via another ROS2 packages, while saving both images. After that, when the STOP button is pressed, the server starts to compare poses between them.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.3]{gambar/pose-comparison.jpeg}
@@ -348,58 +350,62 @@ If we want to run OpenVINO IR Model in OpenVINO Runtime, we must make sure that 
 \end{figure}
 
 
-\section{Comparing the Suitability Between Humanoid Robot Pose and Human Pose}
-\label{sec:comparingsuitability}
+\section{Choose Six Keypoints based on Humanoid Robot Keypoints}
+\label{sec:choose-keypoints}
 
-The difference in numbers between human keypoints and robot keypoints makes us have to reduce human keypoints in order to make a comparison between them.
+The difference in numbers between human keypoints and robot keypoints makes us have to choose certain human's keypoints in order to make a comparison between them.
 Based on the results after testing, we chose Mediapipe for human and Keypoint RCNN for robot. Mediapipe provides 33 landmark keypoints for human and Keypoint RCNN only provides 6 keypoints.
-Therefore, we need to reduce the human keypoint to 6 as shown in Code \ref{lst:reducehumankeypoints}.
-The name of the keypoints in the code corresponds to the name of the keypoints in the robot. First, we get all 33 keypoints in row 16. Then calculate the keypoint we want, such as the head keypoint which is located between the right and left eyes.
-The keypoint for the hands and feet is simply to select the wrists and ankles in Mediapipe(lines 22-28), where landmark[15] and landmark[16] are wrists, landmark[27] and landmark[28] are ankles. Lastly, the trunk keypoint is located between the shoulder and hip keypoint (lines 31-34).
+Therefore, we need to choose 6 human keypoint as shown in Pseudocode \ref{lst:choose-human-keypoints}.
+Note that, the name of the keypoints in the code corresponds to the name of the keypoints in the robot. First, we get all 33 keypoints. Then calculate the keypoint we want, such as the head keypoint which is located between the right and left eye.
+To obtain the eye landmarks, we can index \verb|landmark| variable according to Figure \ref{fig:mediapipe-landmark}, where the left eye is index 2 and the right eye is index 5. This also applies to other landmarks.
+The keypoint for the hands and feet is simply to select the wrists and ankles, where landmark[15] and landmark[16] are wrists, landmark[27] and landmark[28] are ankles.
+Lastly, the trunk keypoint is located between the shoulder and hip keypoint. The x coordinate is located in the middle of the hip. The y-coordinate, on the other hand, is located on 1/4 distance between the hip and the shoulder from below.
+First, we determine the midpoint between the shoulder and hip by individually calculating the coordinates of the right and left y axes, like Pseudocode \ref{lst:choose-human-keypoints} lines 19 and 21. In order to obtain 1/4 of the distance between the hip and the shoulder from below, we then compute the midpoint between the previous computation and the hip point as shown in lines 20, 22, and 24.
+After all of the computation, we arrange all keypoints in a single array.
 
 \lstinputlisting[
-  language=Python,
-  caption={Reduce human keypoints program.},
-  label={lst:reducehumankeypoints}
-]{program/reduce-human-keypoints.py}
+  language={},
+  caption={Choose human keypoints.},
+  label={lst:choose-human-keypoints}
+]{program/choose-human-keypoints.txt}
 
-The next step is defining similarity. When we think about the problem, we see that there are many uncertainties to be addressed. For example, human and humanoid robot can differ in height, body shape, and location within an image: one subject (human or robot) may have been nearby the camera,
+
+\section{Keypoint Normalization}
+\label{sec:keypoint-normalization}
+
+When we think about the problem, we see that there are many uncertainties to be addressed. For example, human and humanoid robot can differ in height, body shape, and location within an image: one subject (human or robot) may have been nearby the camera,
 while another may have been in the distance. In order to get an accurate outcome, each of these issues must be resolved.
-After reducing the keypoints, the model output for both human and robot is the coordinates of 6 keypoints. This information can be used to create a new bounding box that tightly covers the person in the picture. This solves the problem of the subject appearing in different parts of the picture.
-The code implementation can be seen in Code \ref{lst:newbbox}. Line 1-12 is finding the keypoint minimum value, line 14-17 is substracting x value and y value with minimum value before. After that, we get the new bounding box.
-We further normalized the resulting keypoints coordinates by performing L2 normalization in order to transform it into a unit vector as shown in Figure \ref{fig:transforming-into-unit-vector} and the implementation on Code \ref{lst:l2norm} (Note that, we prevent division by 0 in lines 8-11 to avoid error).
-This means we are ignoring the size of the picture, but keeping in account the direction of the vector, created by the pose inside of that image.
-The two steps described before can be thought of visually as shown in Figure \ref{fig:steps-to-normalize}.
+After choosing the keypoints, the model output for both human and robot is the coordinates of 6 keypoints. This information can be used to create a new keypoint coordinates starting from (0,0) in the image. This solves the problem of the subject appearing in different parts of the picture.
 
 \lstinputlisting[
-  language=Python,
-  caption={Get New Bounding Box Program.},
-  label={lst:newbbox}
-]{program/bbox.py}
+  language={},
+  caption={Get New Keypoints.},
+  label={lst:new-keypoints}
+  ]{program/bbox.txt}
+
+In Pseudocode \ref{lst:new-keypoints}, the code is structured into two functions: \verb|get_min_point| and \verb|get_| \verb|new_coords|. The \verb|get_min_point| function takes an array of keypoints coordinates as input with shape (6,2)
+and iterates through each item in the array. It keeps track of the minimum x and y values encountered during the iteration and returns an array containing the minimum x and y coordinates.
+The \verb|get_new_coords| function takes the keypoint coordinates array and \verb|min_point| (minimum x and y coordinates) from the previous calculation as input. It iterates through each item and subtracts the corresponding minimum x and y values from each coordinate. The updated coords array is returned.
+
+We further normalized the resulting keypoints coordinates by performing L2 normalization in order to transform it into a unit vector as shown in Figure \ref{fig:transforming-into-unit-vector}.
+This means we are ignoring the size of the picture, but keeping in account the direction of the vector, created by the pose inside of that image.
+To calculate the L2 normalization for an individual point is to take the square root of the sum of the squares of its coordinates. This calculation resulting the magnitude or length of the vector formed by the coordinates of the point.
+Next step is dividing each coordinate by the length of the vector. This step ensures that the resulting normalized point lies on the unit circle. This normalization process scales the coordinates proportionally while preserving the direction of the vector. Moreover, it will optimize using NumPy library so it can compute multiple points simultaneously.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=0.9]{gambar/transform-to-unit-vector.png}
+  \includegraphics[scale=0.8]{gambar/transform-to-unit-vector.png}
   \caption{Transforming into Unit Vector.}
   \label{fig:transforming-into-unit-vector}
 \end{figure}
 
-\lstinputlisting[
-  language=Python,
-  caption={L2 normalization Program.},
-  label={lst:l2norm}
-]{program/l2_norm.py}
 
-\begin{figure}[ht]
-  \centering
-  \includegraphics[scale=0.9]{gambar/two-steps.png}
-  \caption{Steps Taken to Normalize Data.}
-  \label{fig:steps-to-normalize}
-\end{figure}
+\section{Comparing Human Keypoints and Robot Keypoints}
+\label{sec:comparing-keypoints}
 
 Now that we have standardized the pose vectors, it is time to choose a similarity measure. We chose cosine similarity for this particular instance, mainly because we are working with vectors and performing a few calculations detailed below to arrive at a Euclidean distance that can be interpreted as a cosine distance.
-The formula shown in Equation \ref{eq:euclideandistance} and the implementation on Code \ref{lst:cosinedistane}.
-In that formula, Fxy and Gxy are two pose vectors to be compared after L2 normalization. Moreover, Fxy and Gxy contain only x and y positions for each of the 6 keypoints, it does not include confidence scores.
+The cosine similarity ranges from -1 to 1, with 1 indicating identical poses or vectors are in the same direction, 0 indicating no similarity or vectors are nearly orthogonal, and -1 indicating completely opposite poses or opposite direction. The cosine distance, on the other hand, is a dissimilarity measure that ranges from 0 to 2.
+Using Equation \ref{eq:euclideandistance} scales the values to the range of 0 to 2, making it easier to interpret the results. A larger value implies a greater dissimilarity between poses. In that equation, Fxy and Gxy are two pose vectors to be compared after L2 normalization. Moreover, Fxy and Gxy contain only x and y positions for each of the 6 keypoints, it does not include confidence scores.
 
 \begin{equation}
   \label{eq:cosinesimilarity}
@@ -411,45 +417,10 @@ In that formula, Fxy and Gxy are two pose vectors to be compared after L2 normal
   D(F_{xy}, G_{xy}) = \sqrt{2 * (1 - cosineSimilarity(F_{xy}, G_{xy}))}
 \end{equation}
 
-\lstinputlisting[
-  language=Python,
-  caption={Cosine Distance Program.},
-  label={lst:cosinedistane}
-]{program/cosine_distance.py}
 
-\section{Making Main Program}
-\label{sec:makingmainprogram}
+\section{Pose Similarity Result}
+\label{sec:pose-similarity-result}
 
-% Our main program uses websites to interact with users because of its flexibility on any platform, the website view can be seen in Figure \ref{fig:websiteview}. So there is a Javascript client and a Python Server that communicate via \emph{socketio}.
-% The main program is divided into two modes, RECORD mode and PLAY mode. In RECORD mode, a human as a trainer gives a series of movements and will be followed by a humanoid robot, as well as robot save these movements to use in PLAY mode later.
-% Meanwhile, in the PLAY mode, the robot acts as a trainer and performs a series of movements according to the movements previously stored in RECORD mode. Human will follow the robot's movement while the robot is also saving both human and robot images.
-% So there will be two cameras, one camera to record human movement (located on the robot's head) and the other to record robot movement (located from the human side facing the robot), the distance between them approximately 1 - 1.5 meters, as shown in Figure \ref{fig:posecomparisonside}.
-% \begin{figure}[ht]
-%   \centering
-%   \includegraphics[scale=0.76]{gambar/web.png}
-%   \caption{Website View.}
-%   \label{fig:websiteview}
-% \end{figure}
-
-% \begin{figure}[ht]
-%   \centering
-%   \includegraphics[scale=0.32]{gambar/pose-comparison.jpeg}
-%   \caption{Pose Comparison from Side.}
-%   \label{fig:posecomparisonside}
-% \end{figure}
-
-On the client side, we use ReactJS library. There are four buttons: RECORD, PLAY, START, and STOP button. The RECORD and PLAY button indicates the modes in the main program, while the START and STOP button tell us when the mode is started or stopped.
-Besides that, there are also two images that show human and robot image that is sent from the server side. As shown in Code \ref{lst:clientside}, client and server communicate through port 5555 (line 5).
-We use the \emph{useEffect} function to indicate if there is a change in a particular variable and do something like converting the image from the buffer to a string (line 13) in order to display it on the HTML image tag later on and send some data to the server (line 20).
-
-\lstinputlisting[
-  language={},
-  caption={Client Side Program.},
-  label={lst:clientside}
-]{program/client-side.js}
-
-Meanwhile, our server uses ROS2 with Python language. To run the server and ROS2 program simultaneously, we need a separate thread, so the server program does not block the ROS2.
-On this server side, all of the computations happen, starting from RECORD mode when Mediapipe detects human pose, visualizes the detection result, and send it as a buffer to the client.
-Then, calculate each of the human's joint values, convert them to desired servo values in the real robot, communicate with other ROS2 packages to move the actual robot servo, and also save a series of human movements in a JSON file.
-Whereas in PLAY mode, the server side sends two images so that we can know and adjust the position of humans and robots in the camera. Due to the large network delay when sending two 320x240 pixel images, when the START button is pressed,
-the server does not send the image, the robot plays a series of moves stored in the previous JSON file by communicating via another ROS2 packages, while saving both images. After that, when the STOP button is pressed, the server starts to compare the suitability of poses between them.
+The result of pose similarity is in percentages with a range of 0 to 100. A higher score indicates a more similar position between the human and robot, and vice versa.
+In order to get it, we multiply the cosine distance result from Section \ref{sec:comparing-keypoints} by 100 and subtract the result from 100.
+After getting each result of pose similarity, we take a mean and display it in the left top video. This video will be generated after detecting and comparing all poses.

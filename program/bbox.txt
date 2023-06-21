@@ -1,0 +1,24 @@
+function get_min_point(coords):
+    min_x = 100000
+    min_y = 100000
+    
+    for each item in coords:
+        if item[0] < min_x:
+            min_x = item[0]
+        
+        if item[1] < min_y:
+            min_y = item[1]
+    
+    return [int(min_x), int(min_y)]
+
+function get_new_coords(coords, min_point):
+    for each item in coords:
+        item[0] = item[0] - min_point[0]
+        item[1] = item[1] - min_point[1]
+    
+    return coords
+
+coords = # array with shape (6,2)
+min_point = get_min_point(coords)
+new_keypoints = get_new_coords(coords, min_point)
+
