@@ -25,11 +25,13 @@
 The habit of doing regular physical activity is a central protective factor for health.
 However, sometimes the motivation to engage in physical activity decreases with age.
 Luckily, this can be overcome by replacing the position of a physical trainer with a humanoid robot.
-The main difference between this research and some previous research is comparing humanoid robot's pose with human's pose directly, 
-which will be used in the mimicking process.
-Before that, there will be a new dataset obtained by merging of NimbRo's HumanoidRobotPose dataset with Ichiro's robot pose dataset.
-After that, looking for the best pose estimation method for humanoid robots and humans.
-Through this research, it is hoped that there will be a new dataset of humanoid robot pose as well as a program for matching between humanoid robot's pose and human's pose.
+The main difference between this study and some previous studies is comparing humanoid robot's pose with human's pose directly, 
+which will be used in the process of mimicry of robots to humans.
+The main program in this study will be divided into 2 parts: RECORD and PLAY modes. In RECORD mode, human will do some poses and robot will imitate them
+while saving the movement. Whereas in PLAY mode, the robot will move according to the movements that have been stored in the previous mode and humans will imitate the robot's movements (the robot acts as a trainer).
+Then an assessment of human movement will be carried out based on robot movement using cosine similarity and the results will be obtained in percentage form.
+The greater the value, the more similar human pose and robot pose are, and vice versa.
+By using MediaPipe Pose for keypoint estimation in humans and RCNN Keypoint for robots, the created system is able to provide an accurate assessment of the similarity between the 2 poses.
 
 % Ubah kata-kata berikut dengan kata kunci dari tugas akhir dalam Bahasa Inggris
-\emph{Keywords}: \emph{Physical activity}, \emph{Mimicking}, \emph{Pose}.
+\emph{Keywords}:\emph{Cosine Similarity}, \emph{Mimicry}, \emph{Physical activity}.

@@ -25,11 +25,13 @@
 \emph{Kebiasaan untuk melakukan aktivitas fisik secara teratur merupakan faktor yang penting bagi kesehatan. 
 Namun, terkadang motivasi untuk melakukan aktivitas fisik menurun seiring bertambahnya usia.
 Hal ini dapat diatasi dengan menggantikan posisi pelatih fisik dengan robot humanoid. 
-Perbedaan penelitian ini dengan penelitian-penelitian terdahulu adalah membandingkan pose robot humanoid dengan manusia secara langsung, 
-yang nantinya akan digunakan pada proses mimicking. 
-Sebelum itu, akan dibentuk dataset baru yang diperoleh melalui panggabungan  dataset HumanoidRobotPose milik NimbRo dengan dataset pose robot Ichiro. 
-Setelah itu, mencari metode estimasi terbaik bagi robot humanoid dan manusia. 
-Melalui penelitian ini, diharapkan adanya dataset pose robot humanoid baru serta program pencocokan antara pose humanoid robot dengan manusia}.
+Perbedaan antara penelitian ini dengan penelitian-penelitian terdahulu adalah membandingkan pose robot humanoid dengan manusia secara langsung, 
+yang nantinya akan digunakan pada proses mimikri robot terhadap manusia. 
+Program utama pada penelitian ini akan dibagi menjadi 2 bagian: mode RECORD dan PLAY. Pada mode RECORD, manusia akan mencontohkan gerakan dan robot akan menirukannya
+sekaligus menyimpan gerakannya. Sedangkan pada mode PLAY, robot akan bergerak sesuai gerakan yang telah disimpan pada mode sebelumnya dan manusia akan menirukan gerakan robot (robot berperan sebagai trainer).
+Kemudian akan dilakukan penilaian terhadap gerakan manusia berdasarkan gerakan robot menggunakan kesamaan kosinus dan didaptkan hasilnya dalam bentuk persentase.
+Semakin besar nilainya maka semakin mirip pula pose manusia dan pose robot, begitu juga sebaliknya.
+Dengan menggunakan MediaPipe Pose untuk estimasi keypoint pada manusia dan Keypoint RCNN untuk robot, sistem yang dibuat mampu memberikan penilaian yang tepat terhadap kemiripan antara 2 pose}.
 
 % Ubah kata-kata berikut dengan kata kunci dari tugas akhir
-Kata Kunci: \emph{Aktivitas fisik, Mimicking, Pose}.
+Kata Kunci: \emph{Aktivitas fisik, Mimikri, Kesamaan Kosinus}.

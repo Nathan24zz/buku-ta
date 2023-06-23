@@ -13,8 +13,9 @@ Based on the results of the study, we can make the following conclusion:
 
   \item The creation of a new dataset has been completed by merging the HumanoidRobotPose dataset and Ichiro's poses dataset so the diversity of the data increased.
   \item Annotation tool that is used to make Ichiro's pose dataset is coco-annotator because this is the only tool that the writer found that can export the datasets to COCO Format correctly.
+  \item The Mediapipe was the chosen method for human pose estimation based on our needs of this study and its time inference.
   \item RCNN Keypoint is capable and reliable for detecting humanoid robot with 6 keypoints.
-  \item Cosine Distance is a suitable method to compare the suitability between humanoid robot pose with human poses because the result is higher when
+  \item Cosine Similarity is a suitable method to compare the suitability between humanoid robot pose with human poses because the result is higher when
   humans make a movement that is more like a robot and vice versa.
 
 \end{enumerate}
@@ -26,7 +27,7 @@ For future development of "Mimicking Between Humanoid Robot and Human Based on R
 
 \begin{enumerate}[nolistsep]
 
-  \item Add teen-sized Ichiro humanoid robot to the dataset so that the types of robots without skin can be varied.
+  \item Add teen-sized humanoid robot to the dataset so that the types of robots without skin can be varied.
   \item Try to add more keypoints on humanoid robot so the result of pose comparison more precise.
 
 \end{enumerate}

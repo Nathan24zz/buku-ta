@@ -178,6 +178,18 @@ the server does not send the image to client again, the robot plays a series of 
   \label{fig:pose-comparison-side}
 \end{figure}
 
+In order to move the servo robot according to the data stored in JSON, a package called \emph{akushon} is needed. \emph{Akushon} is a package related to motion robots. This package name comes from a Japanese word that means action.
+Like Section \ref{sec:move-robot-servo}, every package has a node with the package's name and communicates with each other through a topic as shown in Figure \ref{fig:relation-node-play-mode}. There are 3 topics in PLAY mode: \verb|joint/set_joints|, \verb|joint/current_joints| that is used between \verb|akushon_node| and \verb|tachimawari_node| also \verb|motion_matching_node| and \verb|tachimawari_node|,
+and \verb|action/run_action| that is used between \verb|akushon_node| and \verb|mo| \verb|tion_matching_node|.
+The explanation about how to move the robot's servos and get the current value of servos through topic \verb|joint/set_joints| and \verb|joint/current_joints| is located in Section \ref{sec:move-robot-servo}.
+Meanwhile, topic \verb|action/run_action| is used to send pose data in a JSON file from \emph{motion matching} to \emph{akushon} package. In \emph{akushon} package there is an interpolator that loops through every pose in the JSON file, get every value of the servo, and send it to \emph{tachimawari} package.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.64]{gambar/rqt_akushon.png}
+  \caption{Relationship Between Nodes in PLAY Mode.}
+  \label{fig:relation-node-play-mode}
+\end{figure}
+
 This section immediately begins with the estimation pose for humanoid robot because the explanation regarding the previous block has been explained in the previous section.
 Since there are not many pose estimation models for humanoid robots out there yet, we need to retrain them or use transfer learning from the model that supposes to estimate human pose.
 Therefore, the first step is making a new humanoid robot pose dataset.
@@ -323,15 +335,14 @@ In this training, we use SGD optimizer with learning rate 10\textsuperscript{-3}
 After retraining 3 models on Section \ref{subsec:training-robot}, we try to find the best one for our case. We compare them based on \emph{mAP} (mean Average Precision), \emph{mAR} (mean Average Recall),
 real detection result, and inference time on devices with limited computing capabilities (e.g. NUC i5).
 The comparison table of \emph{mAP}, \emph{mAR}, and real detection result of those models are in Chapter \ref{chap:resultsandiscussion}. In this section we just talk about the time inference.
-To know the time that it takes for the model to do the detection, we just need to subtract the time before and after the model does keypoint detection like Pseudocode \ref{lst:time-difference}.
-In this pseudocode, the \verb|get_current_time()| function is used as a placeholder to represent the retrieval of the current time. The keypoint detection process is performed in the indicated section.
-The \verb|elapsed_time| variable is calculated by subtracting the starting time from the current time. Finally, the elapsed time is printed with an appropriate message.
-
 \lstinputlisting[
   language=Python,
   caption={Time difference Pseudocode.},
   label={lst:time-difference}
 ]{program/time-difference.txt}
+To know the time that it takes for the model to do the detection, we just need to subtract the time before and after the model does keypoint detection like Pseudocode \ref{lst:time-difference}.
+In this pseudocode, the \verb|get_current_time()| function is used as a placeholder to represent the retrieval of the current time. The keypoint detection process is performed in the indicated section.
+The \verb|elapsed_time| variable is calculated by subtracting the starting time from the current time. Finally, the elapsed time is printed with an appropriate message.
 
 We also attempt converting our models from PyTorch Model to OpenVINO in order to speed up the time inference. Before that, we convert it to ONNX first like Figure \ref{fig:pytorch-to-openvino}.
 At first, we must ensure that the model is in inference mode by calling \emph{eval} function in Python code.
