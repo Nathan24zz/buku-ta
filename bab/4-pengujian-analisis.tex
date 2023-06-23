@@ -6,7 +6,7 @@
 This section discusses and shows the results from our test and analysis on training humanoid robot model, human model comparison, and also compares their suitability.
 All tests were conducted using the Ichiro robot in the \emph{Robot Cerdas} Laboratory with computer specifications as can be seen in Table \ref{tb:computerspecichiro}.
 
-\def\arraystretch{1.2}
+\def\arraystretch{1.5}
 \begin{longtable}{|c|c|}
   \caption{Computer specification on Ichiro robot.}
   \label{tb:computerspecichiro}\\
@@ -20,6 +20,29 @@ All tests were conducted using the Ichiro robot in the \emph{Robot Cerdas} Labor
   RAM     & 3636 MiB \\
   \hline
 \end{longtable}
+
+
+\section{New Dataset Statistics}
+\label{sec:new-dataset-statistics}
+
+This new dataset is a merge of the HumanoidRobotPose dataset and Ichiro's pose dataset. Figure \ref{fig:nimbro-statistics} shows the statistics for the HumanoidRobotPose dataset and Figure \ref{fig:new-dataset-statistics} shows the statistics for the new dataset.
+The diversity of the number of robot instances per image is illustrated on the left, and the scale proportions of robot instances is shown on the right. The definition of small, medium, and large scale is identical to the COCO dataset.
+Most of the additions (Ichiro's pose dataset) are one robot instance (from approximately 850 to 1700) and few are two instances per image (from approximately 380 to 430) with large scale, this was based on a system requirement that only need pose estimation for one robot.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.78]{gambar/old_dataset.png}
+  \caption{HumanoidRobotPose Statistics.}
+  \label{fig:nimbro-statistics}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.63]{gambar/new_dataset.png}
+  \caption{New Dataset Statistics.}
+  \label{fig:new-dataset-statistics}
+\end{figure}
+
 
 \section{Robot's Model Training Result}
 \label{sec:robotmodeltrainingresult}
