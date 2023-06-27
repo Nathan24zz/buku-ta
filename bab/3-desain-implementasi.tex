@@ -281,6 +281,10 @@ The \verb|"DATASET.TRAIN"| specifies the name or identifier of the training data
 The \verb|"MAX_NUM_| \verb|DETECTIONS"| is set to 10, indicating the maximum number of robots in the dataset. The "SIGMA" parameter is set to 2.0, which is used in generating heatmaps. For augmentation, The "FLIP" is set to 0.0, meaning there will be no horizontal flipping of the input data. The "TRANSLATE" is set to 0.4, allowing the data to be translated by up to 40\% of its size.
 The "SCALE" parameter represents a range of scaling applied to the input data, with a minimum scale of 0.5 and a maximum scale of 1.5. The "ROTATION" is set to 0, indicating no rotation will be applied to the input data. Additionally, the \verb|"INPUT_SIZE"| is set to [384, 384], representing the desired input size of the model, while the \verb|"OUTPUT_SIZE"| is set to [192, 192], indicating the desired output size.
 
+For computing loss, they use mean square error (MSE) between the predicted heatmaps and the ground truth heatmaps for both keypoints and the limbs.
+This loss function directly compare the predicted coordinates of the keypoints with the ground truth coordinates by averaging the squared difference between the predicted and target coordinates.
+Finally, the total loss used to train the network is the sum of the keypoint loss and the limb loss \parencite{amini2021}.
+
 \subsubsection{YOLO-pose}
 \label{subsubsec:training-yolo-pose}
 
@@ -309,6 +313,28 @@ random translation [-10, 10], mosaic augmentation with probability 1, and variou
 It is the same with previous section, the main program for training has been provided using PyTorch framework too, but the program is intended for humans with 17 keypoints.
 If we run it directly with our dataset with 6 keypoints, an error will be raised. Therefore, a little bit of code needs to be changed to make the training process can be run.
 
+The overall loss for YOLO-pose is a sum of loss for classification, bounding box, keypoints, and keypoints confidence with its threshold as seen in Equation \ref{eq:overall-loss-yolo}.
+The hyper-params that are chosen to balance between losses at different scales are $\lambda_{cls} = 0.5$, $\lambda_{box} = 0.05$, $\lambda_{kpts} = 0.1$, and $\lambda_{kpts_conf} = 0.5$.
+Note that, Loss at location (\emph{i,j}) is valid for k\textsuperscript{th} anchor at scale s if a ground truth bounding box is matched against that anchor \parencite{maji2022yolopose}.
+\begin{equation}
+  \label{eq:overall-loss-yolo}
+  \mathcal{L}_{total} = \sum_{s,i,j,k} (\lambda_{cls}\mathcal{L}_{cls} + \lambda_{box}\mathcal{L}_{box} + \lambda_{kpts}\mathcal{L}_{kpts} + \lambda_{kpts_conf}\mathcal{L}_{kpts_conf})
+\end{equation}
+
+Instead of using distance-based loss for box detection, the majority of modern object detectors optimize advanced IoU loss variants like GIoU, DIoU, or CIoU loss since these losses are scale-invariant and directly optimize the evaluation measure itself.
+They use CIoU loss for bounding box supervision. For a ground truth bounding box that is matched with k\textsuperscript{th} anchor at location (\emph{i,j}) and scale s, loss defined as follows \parencite{maji2022yolopose}.
+\begin{equation}
+  \label{eq:bbox-loss-yolo}
+  \mathcal{L}_{box}(s,i,j,k) = (1 - CIoU(Box_{gt}^{s,i,j,k}, Box_{pred}^{s,i,j,k}))
+\end{equation}
+
+Conventionally, heat-map-based bottom-up approaches use L1 loss to detect keypoints. However, L1 loss may not necessarily be suitable to obtain optimal OKS for evaluation metrics because it does not take into consideration the scale of an object or the type of a keypoint.
+Therefore they use OKS loss, they extend the idea of  IOU loss from box to keypoints. OKS is treated as IOU in case of keypoints. OKS is computed for each keypoint separately and then summed to give the final OKS loss or keypoint IOU loss \parencite{maji2022yolopose}.
+\begin{equation}
+  \label{eq:keypoint-loss-yolo}
+  \mathcal{L}_{kpts}(s,i,j,k) = 1 - \sum_{n=1}^{N_{kpts}} OKS
+\end{equation}
+
 \subsubsection{Keypoint RCNN}
 \label{subsubsec:training-rcnn}
 
@@ -328,6 +354,9 @@ The \verb|aspect_ratios| argument is set to (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0
 which are used as reference bounding boxes during the object detection process. These anchor boxes are later compared to the ground truth bounding boxes of objects in the training data to determine the location of objects.
 Note that, \verb|num classes| argument is set to two because the first class is background and object is the second class.
 In this training, we use SGD optimizer with learning rate 10\textsuperscript{-3}, batch size 3, and weight decay of 5\textsuperscript{-4} for 50 epochs.
+
+The overall loss for Keypoint RCNN is a sum of loss for class prediction, bounding box,
+keypoints, and keypoints confidence with its threshold as seen in Equation 3.2
 
 \subsection{Finding the Best Model for Humanoid Robot Pose Estimation}
 \label{subsec:finding-best-model-humanoid-robot}

@@ -26,16 +26,15 @@ All tests were conducted using the Ichiro robot in the \emph{Robot Cerdas} Labor
 \label{sec:new-dataset-statistics}
 
 This new dataset is a merge of the HumanoidRobotPose dataset and Ichiro's pose dataset. Figure \ref{fig:nimbro-statistics} shows the statistics for the HumanoidRobotPose dataset and Figure \ref{fig:new-dataset-statistics} shows the statistics for the new dataset.
-The diversity of the number of robot instances per image is illustrated on the left, and the scale proportions of robot instances is shown on the right. The definition of small, medium, and large scale is identical to the COCO dataset.
-Most of the additions (Ichiro's pose dataset) are one robot instance (from approximately 850 to 1700) and few are two instances per image (from approximately 380 to 430) with large scale, this was based on a system requirement that only need pose estimation for one robot.
-
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=0.78]{gambar/old_dataset.png}
+  \includegraphics[scale=0.8]{gambar/old_dataset.png}
   \caption{HumanoidRobotPose Statistics.}
   \label{fig:nimbro-statistics}
 \end{figure}
-
+The diversity of the number of robot instances per image is illustrated on the left, and the scale proportions of robot instances is shown on the right. The definition of small, medium, and large scale is identical to the COCO dataset.
+Most of the additions (Ichiro's pose dataset) are one robot instance (from approximately 850 to 1700) and few are two instances per image (from approximately 380 to 430) with large scale, i.e., (segment area \textgreater 96\textsuperscript{2}). 
+This was based on a system requirement that only need pose estimation for one robot and since the distance between the camera and the robot is not that far, the robot object in the image is mainly on a large scale.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.63]{gambar/new_dataset.png}
@@ -47,25 +46,47 @@ Most of the additions (Ichiro's pose dataset) are one robot instance (from appro
 \section{Robot's Model Training Result}
 \label{sec:robotmodeltrainingresult}
 
-This section shows the evaluation metrics about three models and testing we perform such as visualizing detection results and inference time.
+This section shows training graphics, evaluation metrics about three models, and testing we perform such as visualizing detection results and inference time.
+Figure \ref{fig:nimbro-training-graphics} and \ref{fig:rcnn-training-graphics} show graphics for training loss (on the left) and validation loss (on the right).
+Training loss and validation loss of NimbRo's model decreased from 0.02 to 0.0006 and 0.0065 to 0.002 respectively. From Figure \ref{fig:rcnn-training-graphics},
+we also can know that training loss and validation loss of Keypoint RCNN decreased from 6 to 2 and 5 to 4 respectively and they were stagnant until the end of the training process.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.65]{gambar/loss-nimbro.png}
+  \caption{Nimbro Training Graphics.}
+  \label{fig:nimbro-training-graphics}
+\end{figure}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.65]{gambar/loss-rcnn.png}
+  \caption{Keypoint RCNN Training Graphics.}
+  \label{fig:rcnn-training-graphics}
+\end{figure}
+
 For the evaluation metrics, NimbRo's Model and Keypoint RCNN use the Object Keypoint Similarity (OKS) with a per-keypoint constant equal to 0.4 for all keypoints.
-Otherwise, YOLO uses slightly different OKS, they extend the idea of IOU loss from box to keypoints. OKS is treated as IOU in case of keypoints \parencite{maji2022yolopose}.
-From Table \ref{tb:robotmodelcomparison} it can be seen that Keypoint RCNN has the highest evaluation metric among the other models.
+YOLO also uses OKS, they follow COCO pose estimation standard evaluation metric.
+In keypoint detection tasks, precision and recall are commonly used as primary metrics because it measures the quality of predictions (precision measures the proportion of correctly predicted keypoints out of all the keypoints prediction and
+  recall measures the proportion of correctly predicted keypoints out of all the actual ground truth). Meanwhile, accuracy is not a relevant metric in keypoint detection because it does not capture the nature of the task effectively.
+The task is focused on localizing and identifying keypoints in an image, rather than classifying the entire image or predicting discrete categories. Thus, measuring accuracy, which typically evaluates overall correctness in classification tasks,
+  may not provide meaningful insights for this task. Moreover, if we want to get accuracy, we need to know the value of True Negative (TN). Since keypoint detection is not a binary classification task (like classifying the absence or presence of keypoints),
+  determining the True Negatives can be challenging. Therefore, the concept of True Negatives is not directly applicable or relevant in this context.
+
+The results on the test set are reported in Table \ref{tb:result-on-test-set}. It can be seen that Keypoint RCNN outperforms other methods in all metrics except for medium scale.
 Moreover, Keypoint RCNN showed the best detection results as shown in Table \ref{tb:robotmodelcomparisondetectionresults}, followed by NimbRo's Model and YOLO-pose.
 Lastly, NimbRo's Model is the most likely to be applied to real-time systems because it has the lowest inference time as shown in Table \ref{tb:inferencerobot}.
-However, since our main program uses the web for interaction and during PLAY mode, there is a considerable delay due to transferring two image data from the server to the client.
-Hence, we decide to store the images first and do pose comparisons afterwards. Since we are more concerned with a reliable model than a faster model, so the Keypoint RCNN model is suitable for this.
+However, since the in PLAY mode, we can do the pose estimation for both human and humanoid robot in the end, not in real-time.
+We decide to store the images first and do pose comparisons afterward. Since we are more concerned with a reliable model than a faster model so the Keypoint RCNN model is suitable for this study.
 
 \begin{longtable}{|L{1.5cm}|c|c|c|c|c|c|c|c|c|c|}
-  \caption{Robot Model Comparison.}
-  \label{tb:robotmodelcomparison}\\
+  \caption{Results on the test set.}
+  \label{tb:result-on-test-set}\\
   \hline
   \rowcolor[HTML]{C0C0C0}
   \textbf{Model} & \textbf{AP} & \textbf{AP\textsubscript{50}} & \textbf{AP\textsubscript{75}} & \textbf{AP\textsubscript{M}} & \textbf{AP\textsubscript{L}} & \textbf{AR} & \textbf{AR\textsubscript{50}} & \textbf{AR\textsubscript{75}} & \textbf{AR\textsubscript{M}} & \textbf{AR\textsubscript{L}} \\
   \hline
-  NimbRo Model & 0.828       & 0.879                         & 0.840                         & 0.886                        & 0.864                        & 0.836       & 0.884                         & 0.849                         & 0.895                        & 0.872 \\
+  NimbRo Model & 0.828       & 0.879                         & 0.840                         & \textbf{0.886}                       & 0.864                        & 0.836       & 0.884                         & 0.849                         & 0.895                        & 0.872 \\
   \hline                        
-  Keypoint RCNN  & 0.879       & 0.936                         & 0.904                         & 0.859                        & 0.937                        & 0.925       & 0.973                         & 0.944                         & 0.936                        & 0.955 \\
+  Keypoint RCNN  & \textbf{0.879}       & \textbf{0.936}                         & \textbf{0.904}                         & 0.859                        & \textbf{0.937}                       & \textbf{0.925}       & \textbf{0.973}                         & \textbf{0.944}                         & \textbf{0.936}                        & \textbf{0.955} \\
   \hline                        
   YOLO-pose      & 0.849       & 0.838                         & -                             & -                            & -                            & 0.814       & -                             & -                             & -                            & - \\
   \hline
