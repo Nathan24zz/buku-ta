@@ -329,10 +329,18 @@ They use CIoU loss for bounding box supervision. For a ground truth bounding box
 \end{equation}
 
 Conventionally, heat-map-based bottom-up approaches use L1 loss to detect keypoints. However, L1 loss may not necessarily be suitable to obtain optimal OKS for evaluation metrics because it does not take into consideration the scale of an object or the type of a keypoint.
-Therefore they use OKS loss, they extend the idea of  IOU loss from box to keypoints. OKS is treated as IOU in case of keypoints. OKS is computed for each keypoint separately and then summed to give the final OKS loss or keypoint IOU loss \parencite{maji2022yolopose}.
+Therefore they use OKS loss, they extend the idea of  IOU loss from box to keypoints. OKS is treated as IOU in case of keypoints. OKS is computed for each keypoint separately and then summed to give the final OKS loss or keypoint IOU loss like Equation \ref{eq:keypoint-loss-yolo},
+where $\delta(V_n > 0) =$ visibility flag for each keypoint \parencite{maji2022yolopose}.
 \begin{equation}
   \label{eq:keypoint-loss-yolo}
-  \mathcal{L}_{kpts}(s,i,j,k) = 1 - \sum_{n=1}^{N_{kpts}} OKS
+  \mathcal{L}_{kpts}(s,i,j,k) = 1 - \frac{\sum_{n=1}^{N_{kpts}} exp\left( \frac{d_n^2}{2s^2k_n^2} \right) \delta(V_n > 0) }{\sum_{n=1}^{N_{kpts}} \delta(V_n > 0)}
+\end{equation}
+
+In order to get the loss of keypoint confidence, they use Binary Cross-Entropy Loss. This parameter shows whether a keypoint is present for that object or not. Here, visibility flags for keypoints are used as ground truth.
+$p_{kpts}^n=$ predicted confidence for n\textsuperscript{th} keypoint \parencite{maji2022yolopose}.
+\begin{equation}
+  \label{eq:keypoint-confident-loss-yolo}
+  \mathcal{L}_{kpts_conf}(s,i,j,k) = \sum_{n=1}^{N_{kpts}} BCE(\delta(V_n > 0), p_{kpts}^n)
 \end{equation}
 
 \subsubsection{Keypoint RCNN}
@@ -355,15 +363,21 @@ which are used as reference bounding boxes during the object detection process. 
 Note that, \verb|num classes| argument is set to two because the first class is background and object is the second class.
 In this training, we use SGD optimizer with learning rate 10\textsuperscript{-3}, batch size 3, and weight decay of 5\textsuperscript{-4} for 50 epochs.
 
-The overall loss for Keypoint RCNN is a sum of loss for class prediction, bounding box,
-keypoints, and keypoints confidence with its threshold as seen in Equation 3.2
+The total loss for Keypoint RCNN is a sum of loss for classification, bounding box, and keypoints as seen in Equation \ref{eq:overall-loss-rcnn}.
+Keypoint RCNN use Cross-Entropy Loss to compute classification loss and keypoints loss, also smooth L1 loss for bounding-box. 
+For keypoint detection, a common loss function used is the Mean Squared Error (MSE) loss or its variant, the Smooth L1 loss. These loss functions directly compare the predicted coordinates of the keypoints with the ground truth coordinates.
+However, Keypoint RCNN uses Cross Entropy loss to compute keypoints loss. This loss function is primarily used for multi-class classification problems. It expects the input to be raw logits or probabilities for each class and requires the target labels to be class indices. Therefore, the keypoint task is treated as a multi-class classification problem, where each keypoint is considered a separate class.
+\begin{equation}
+  \label{eq:overall-loss-rcnn}
+  \mathcal{L}_{total} = \sum (\mathcal{L}_{cls} + \mathcal{L}_{box} + \mathcal{L}_{kpts})
+\end{equation}
 
 \subsection{Finding the Best Model for Humanoid Robot Pose Estimation}
 \label{subsec:finding-best-model-humanoid-robot}
 
 After retraining 3 models on Section \ref{subsec:training-robot}, we try to find the best one for our case. We compare them based on \emph{mAP} (mean Average Precision), \emph{mAR} (mean Average Recall),
 real detection result, and inference time on devices with limited computing capabilities (e.g. NUC i5).
-The comparison table of \emph{mAP}, \emph{mAR}, and real detection result of those models are in Chapter \ref{chap:resultsandiscussion}. In this section we just talk about the time inference.
+The comparison table and real detection result of those models are in Chapter \ref{chap:resultsandiscussion}.
 \lstinputlisting[
   language=Python,
   caption={Time difference Pseudocode.},
@@ -439,7 +453,7 @@ Next step is dividing each coordinate by the length of the vector. This step ens
   \label{fig:transforming-into-unit-vector}
 \end{figure}
 
-
+\newpage
 \section{Comparing Human Keypoints and Robot Keypoints}
 \label{sec:comparing-keypoints}
 
