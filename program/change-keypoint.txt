@@ -1,15 +1,25 @@
-function change_keypoint_format(keypoints, img_size):
+FUNCTION length_of(array)
+    count = 0
+    FOR element IN array DO
+        count = count + 1
+    END FOR
+    RETURN count
+END FUNCTION
+
+FUNCTION change_keypoint_format(keypoints, img_size)
     kpts = []
-    width, height = img_size
+    width = img_size[0]
+    height = img_size[1]
     
-    for i in range(0, length of keypoints, 3):
-        x, y, v = keypoints[i:i+3]
-        if v is equal to 0:
-            kpts = kpts + [format(x/width, ".6f"), 
-                           format(y/height, ".6f"), 
-                           format(v, ".6f")]
-        else:
-            kpts = kpts + [format(x/width, ".6f"), 
-                           format(y/height, ".6f"), 
-                           format(2, ".6f")]
-    return kpts
+    FOR i IN 0 TO length_of(keypoints) STEP 3 DO
+        x = keypoints[i]
+        y = keypoints[i+1]
+        v = keypoints[i+2]
+        IF v = 0 THEN
+            kpts = kpts + [x/width, y/height, v]
+        ELSE
+            kpts = kpts + [x/width, y/height, 2]
+        END IF
+    END FOR
+    RETURN kpts
+END FUNCTION

@@ -1,6 +1,7 @@
 image_height = # get width of image
 image_width = # get height of image
 landmark = # Mediapipe detection result in array form
+           # each landmark is composed of x, y and z
 
 left_eye = landmark[2]
 right_eye = landmark[5]

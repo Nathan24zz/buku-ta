@@ -352,7 +352,7 @@ Actually, this format is almost the same as the YOLO format (each image has its 
 Where the format of the bounding-box is the top left point and the bottom right point. We can obtain bottom right point by adding bounding box width to x coordinate and its height to y coordinate.
 
 The training process starts with loading our dataset and specifying the augmentation technique we are using. We use \emph{albumentations} library from Python for augmenting our dataset.
-At first, we apply random brightness, contrast, and rotation. Nevertheless, the model seems to become underfitting, so we try just random brightness and contrast. Fortunately, the result seems pretty good after that.
+We apply random brightness, contrast, and rotation.
 Before we declare RCNN model using torchvision library, we need anchors that will be an input argument. 
 By default, the \emph{AnchorGenerator} class in PyTorch has 3 different sizes (128, 256, 512) and 3 different aspect ratios (0.5, 1.0, 2.0).
 We have extended those parameters, \verb|sizes| to (32, 64, 128, 256, 512) which means that anchor boxes with different base sizes will be generated. These base sizes represent the approximate dimensions (in pixels) of the objects that the algorithm will try to detect.
@@ -448,12 +448,11 @@ Next step is dividing each coordinate by the length of the vector. This step ens
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=0.8]{gambar/transform-to-unit-vector.png}
+  \includegraphics[scale=0.7]{gambar/transform-to-unit-vector.png}
   \caption{Transforming into Unit Vector.}
   \label{fig:transforming-into-unit-vector}
 \end{figure}
 
-\newpage
 \section{Comparing Human Keypoints and Robot Keypoints}
 \label{sec:comparing-keypoints}
 

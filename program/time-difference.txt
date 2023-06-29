@@ -4,4 +4,4 @@ start_time = get_current_time()
 # Perform the keypoint detection process here
 
 elapsed_time = get_current_time() - start_time
-print("---", elapsed_time, "seconds ---")
+PRINT elapsed_time

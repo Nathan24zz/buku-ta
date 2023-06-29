@@ -1,22 +1,24 @@
-function get_min_point(coords):
+FUNCTION get_min_point(coords):
     min_x = 100000
     min_y = 100000
     
-    for each item in coords:
-        if item[0] < min_x:
+    FOR item IN coords DO
+        IF item[0] < min_x THEN
             min_x = item[0]
-        
-        if item[1] < min_y:
+        END IF
+        IF item[1] < min_y THEN
             min_y = item[1]
-    
-    return [int(min_x), int(min_y)]
+        END IF
+    RETURN [int(min_x), int(min_y)]
+END FUNCTION
 
-function get_new_coords(coords, min_point):
-    for each item in coords:
+FUNCTION get_new_coords(coords, min_point):
+    FOR item IN coords DO
         item[0] = item[0] - min_point[0]
         item[1] = item[1] - min_point[1]
-    
-    return coords
+    END FOR
+    RETURN coords
+END FUNCTION
 
 coords = # array with shape (6,2)
 min_point = get_min_point(coords)

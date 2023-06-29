@@ -48,14 +48,20 @@ This was based on a system requirement that only need pose estimation for one ro
 
 This section shows training graphics, evaluation metrics about three models, and testing we perform such as visualizing detection results and inference time.
 Figure \ref{fig:nimbro-training-graphics} and \ref{fig:rcnn-training-graphics} show graphics for training loss (on the left) and validation loss (on the right).
-Training loss and validation loss of NimbRo's model decreased from 0.02 to 0.0006 and 0.0065 to 0.002 respectively. From Figure \ref{fig:rcnn-training-graphics},
-we also can know that training loss and validation loss of Keypoint RCNN decreased from 6 to 2 and 5 to 4 respectively and they were stagnant until the end of the training process.
+The training loss graphic shows the trend of the loss value over epochs or iterations during training. It represents how well the model is fitting the training data.
+On the other hand, the validation loss graphic shows the trend of the loss value over epochs or iterations during validation.  It serves as an estimate of how well the model generalizes to unseen data.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.65]{gambar/loss-nimbro.png}
   \caption{Nimbro Training Graphics.}
   \label{fig:nimbro-training-graphics}
 \end{figure}
+Training loss and validation loss of NimbRo's model decreased from 0.02 to 0.0006 and 0.0065 to 0.002 respectively. From Figure \ref{fig:rcnn-training-graphics},
+we also can know that training loss and validation loss of Keypoint RCNN decreased from 6.991 to 2.634 and 5.926 to 3.439 respectively. Initially, the training loss is high as the model's parameters are randomly initialized,
+  and the model has not yet learned to make accurate predictions. As the training progresses, the loss generally decreases, indicating that the model is learning and improving its performance.
+The training loss steadily decreases and eventually stabilizes, this indicates the model has converged and training does not need to be continued.
+Like training loss, initially, validation loss is relatively high since the model has not been exposed to the validation data. As the model learns from the training data, the validation loss should decrease,
+  indicating improved generalization performance. The validation loss steadily decreases and stabilizes in the end.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.65]{gambar/loss-rcnn.png}
@@ -108,7 +114,8 @@ We decide to store the images first and do pose comparisons afterward. Since we 
   \hline
 \end{longtable}
 
-\def\arraystretch{1.5}
+\newpage
+\def\arraystretch{1}
 \begin{longtable}{|c|c|c|}
   \caption{Inference Time Model Humanoid Robot.}
   \label{tb:inferencerobot}\\
@@ -133,6 +140,7 @@ Based on \parencite{bazarevsky2020} that compares three different models: BlazeP
 Note that, in this study, we use BlazePose Full because by default the value of \emph{model complexity} argument is 1 in the \emph{mediapipe.solutions.pose.Pose} API class. Mediapipe provides 3 BlazePose models: BlazePose Lite, BlazePose Full, and BlazePose Heavy. Pose landmark accuracy as well as inference latency generally go up with the model complexity.
 Table \ref{tb:yoloandmediapipecomparison} shows the comparison between YOLO-pose and MediaPipe Pose and based on our needs to just detect one person, MediaPipe should be the best and also reliable choice.  
 
+\def\arraystretch{1.5}
 \begin{longtable}{|L{3cm}|L{5cm}|L{5cm}|}
   \caption{YOLO-pose and MediaPipe Pose Comparison.}
   \label{tb:yoloandmediapipecomparison}\\
