@@ -11,12 +11,14 @@ Based on the results of the study, we can make the following conclusion:
 
 \begin{enumerate}[nolistsep]
 
-  \item The creation of a new dataset has been completed by merging the HumanoidRobotPose dataset and Ichiro's poses dataset so the diversity of the data increased.
+  \item The creation of a new dataset has been completed by merging the HumanoidRobotPose dataset and Ichiro's poses dataset 
+        so the size of the robots become varies (adult, teen, and kid size). Furthermore, most of the additions (Ichiro's pose dataset) are one robot instance and few are two instances per image.
   \item Annotation tool that is used to make Ichiro's pose dataset is coco-annotator because this is the only tool that the writer found that can export the datasets to COCO Format correctly.
   \item The Mediapipe was the chosen method for human pose estimation based on our needs of this study and its time inference.
-  \item RCNN Keypoint is capable and reliable for detecting humanoid robot with 6 keypoints.
+  \item RCNN Keypoint is capable and reliable for detecting humanoid robot with 6 keypoints  based on results on the test set and detection results
+        although it can not be performed in real-time even after converting to OpenVINO.
   \item Cosine Similarity is a suitable method to compare the suitability between humanoid robot pose with human poses because the result is higher when
-  humans make a movement that is more like a robot and vice versa.
+        humans make a movement that is more like a robot and vice versa.
 
 \end{enumerate}
 

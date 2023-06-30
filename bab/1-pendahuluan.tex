@@ -28,9 +28,9 @@ Another method is to use pose estimation obtained through \emph{deep learning} m
 However, previous studies have only compared the angle and depth of each keypoint from estimated human pose within certain boundaries or compared the results of human poses with the poses that are used as a guide. \parencite{romeo}
 There is still little study that directly compares the suitability between poses performed by human and robot.
 
-For that, on this occasion, we propose study related to mimicking between humanoid robot and human based on real-time pose estimation. 
+For that, on this occasion, we propose study related to upper body human pose mimicry by humanoid robot using cosine similarity function. 
 In addition to finding the best pose estimation method for both humanoid robot and human, this study will also compare poses between them and make a web for controlling their interaction.
-This is intended so that in the future it can be implemented in real robot or in an educational game.
+This is intended so that it can be implemented in real robot or maybe in an educational game in the future.
 
 \section{Problem}
 \label{sec:problem}
@@ -38,13 +38,13 @@ This is intended so that in the future it can be implemented in real robot or in
 The problem that can be drawn are there have been studies on pose estimation for robot with skin but no one has done it on robot without skin (for example Ichiro's robot).
 There are not many studies that directly compare the estimated poses of humanoid robot with human. 
 For this reason, a study is needed to know the suitability of humanoid robot poses and human poses. 
-In addition, it is also necessary to add Ichiro's pose dataset to the HumanoidRobotPose dataset and find the best pose estimation model for humanoid robot and human.
+In addition, it is also necessary to add Ichiro's pose dataset to the HumanoidRobotPose dataset and find the best pose estimation model for humanoid robot.
 
 \section{Goal}
 \label{sec:goal}
 
 The purpose of this study is to create a new dataset that merges Ichiro's poses dataset and the HumanoidRobotPose dataset so it can increase the diversity of the data. In addition,
-we will look for the best pose estimation method for the humanoid robot. Third, comparing the suitability of humanoid robot pose with human poses.
+we will look for the best pose estimation method for human and humanoid robot. Third, comparing the suitability of humanoid robot pose with human poses.
 
 \section{Study Limits}
 \label{sec:studylimits}
@@ -83,14 +83,17 @@ This final project study is divided into several sections as follows:
 
   \item \textbf{CHAPTER III Design and System Implementation}
 
-        Chapter 3 describes system design and implementation, starting from collecting data to forming new datasets, training pose estimation models for humanoid robot,
-        searching for the best model for both human and humanoid robot, and comparing the suitability between them.
+        Chapter 3 describes system design and implementation, this section will be divided into two parts: RECORD and PLAY mode.
+        In RECORD mode, it starts with a human image and then does pose estimation to get human keypoints. After that, converting the angle between 2 keypoints into a servo value
+        so we can move the robot's servo to mimic human movement and save it for PLAY mode.
+        On the other hand, in PLAY mode, the input is 2: human image and humanoid robot image. Then, we perform pose estimation for both images. Before doing keypoint normalization,
+        we have to choose 6 human keypoints based on humanoid robot keypoints. Lastly, we compare those keypoints and get the result.
 
         \vspace{2ex}
 
   \item \textbf{CHAPTER IV Results and Discussion}
 
-        Chapter 4 consists of the results obtained from the tests performed, such as comparing humanoid robot models performance based on \emph{mAP}, \emph{mAR}, time inference,
+        Chapter 4 consists of training graphics and the results obtained from the tests performed, such as comparing humanoid robot models performance based on \emph{mAP}, \emph{mAR}, time inference,
         and real detection result.
 
         \vspace{2ex}

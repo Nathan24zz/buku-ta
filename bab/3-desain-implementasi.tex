@@ -1,5 +1,5 @@
 \chapter{DESIGN AND IMPLEMENTATION}
-\label{chap:desainandimplementation}
+\label{chap:design-and-implementation}
 
 % Ubah bagian-bagian berikut dengan isi dari desain dan implementasi
 
@@ -192,7 +192,7 @@ Meanwhile, topic \verb|action/run_action| is used to send pose data in a JSON fi
 
 This section immediately begins with the estimation pose for humanoid robot because the explanation regarding the previous block has been explained in the previous section.
 Since there are not many pose estimation models for humanoid robots out there yet, we need to retrain them or use transfer learning from the model that supposes to estimate human pose.
-Therefore, the first step is making a new humanoid robot pose dataset.
+Therefore, the following subsections will explain about the steps for training pose estimation on humanoid robot.
 
 \subsection{Make New Dataset}
 \label{subsec:make-new-dataset}
@@ -253,7 +253,7 @@ This model is trained using the AdamW optimizer with a learning rate of 10\texts
 batch size 16, and weight decay of 10\textsuperscript{-4} for the total 200 epochs.
 Note that the encoder is initialized by pre-trained ResNet weights on ImageNet.
 We also use data augmentation that includes random scaling and random translation during training \parencite{amini2021}.
-We do not use random horizontal flip and random rotation like NimbRo did because in our case it will make the training result worse.
+We do not use random horizontal flip and random rotation because in our case it will make the training result worse.
 
 The main program for training is already made by them named \emph{main.py} using PyTorch framework, we just need to run it on Jupyter Notebook file or Terminal and adjust the arguments for our needs.
 In their script, there is an argument name \verb|config| which it is referred to a file where we store all the hyperparameters, number of epochs, dataset name for training and testing, and many others. 
@@ -313,7 +313,7 @@ random translation [-10, 10], mosaic augmentation with probability 1, and variou
 It is the same with previous section, the main program for training has been provided using PyTorch framework too, but the program is intended for humans with 17 keypoints.
 If we run it directly with our dataset with 6 keypoints, an error will be raised. Therefore, a little bit of code needs to be changed to make the training process can be run.
 
-The overall loss for YOLO-pose is a sum of loss for classification, bounding box, keypoints, and keypoints confidence with its threshold as seen in Equation \ref{eq:overall-loss-yolo}.
+The overall loss for YOLO-pose is a sum of loss of classification, bounding box, keypoints, and keypoints confidence with its threshold as seen in Equation \ref{eq:overall-loss-yolo}.
 The hyper-params that are chosen to balance between losses at different scales are $\lambda_{cls} = 0.5$, $\lambda_{box} = 0.05$, $\lambda_{kpts} = 0.1$, and $\lambda_{kpts_conf} = 0.5$.
 Note that, Loss at location (\emph{i,j}) is valid for k\textsuperscript{th} anchor at scale s if a ground truth bounding box is matched against that anchor \parencite{maji2022yolopose}.
 \begin{equation}
@@ -358,8 +358,8 @@ By default, the \emph{AnchorGenerator} class in PyTorch has 3 different sizes (1
 We have extended those parameters, \verb|sizes| to (32, 64, 128, 256, 512) which means that anchor boxes with different base sizes will be generated. These base sizes represent the approximate dimensions (in pixels) of the objects that the algorithm will try to detect.
 The anchor generator will create anchors with these base sizes at different positions in the image.
 The \verb|aspect_ratios| specifies the aspect ratios of the anchor boxes. Aspect ratio refers to the ratio of the width to the height of the anchor box.
-The \verb|aspect_ratios| argument is set to (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0), which means anchor boxes with these aspect ratios will be generated. By combining different base sizes and aspect ratios, the anchor generator can produce a diverse set of anchor boxes,
-which are used as reference bounding boxes during the object detection process. These anchor boxes are later compared to the ground truth bounding boxes of objects in the training data to determine the location of objects.
+The \verb|aspect_ratios| argument is set to (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0), which means anchor boxes with these aspect ratios will be generated. By combining different base sizes and aspect ratios, the anchor generator can produce a diverse set of anchor boxes.
+These anchor boxes are later compared to the ground truth bounding boxes of objects in the training data to determine the location of objects.
 Note that, \verb|num classes| argument is set to two because the first class is background and object is the second class.
 In this training, we use SGD optimizer with learning rate 10\textsuperscript{-3}, batch size 3, and weight decay of 5\textsuperscript{-4} for 50 epochs.
 
@@ -375,7 +375,7 @@ However, Keypoint RCNN uses Cross Entropy loss to compute keypoints loss. This l
 \subsection{Finding the Best Model for Humanoid Robot Pose Estimation}
 \label{subsec:finding-best-model-humanoid-robot}
 
-After retraining 3 models on Section \ref{subsec:training-robot}, we try to find the best one for our case. We compare them based on \emph{mAP} (mean Average Precision), \emph{mAR} (mean Average Recall),
+After retraining 3 models on Section \ref{subsec:training-robot}, we try to find the best one for our case. We compare them based on \emph{AP} (Average Precision), \emph{AR} (Average Recall),
 real detection result, and inference time on devices with limited computing capabilities (e.g. NUC i5).
 The comparison table and real detection result of those models are in Chapter \ref{chap:resultsandiscussion}.
 \lstinputlisting[
