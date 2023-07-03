@@ -76,13 +76,13 @@ It is slightly different to obtain the elbow angles because we want its angle to
   \rowcolor[HTML]{C0C0C0}
   \textbf{Joint Angle} & \textbf{Motion} & \textbf{Range (deg)} \\
   \hline
-  LShoulderPitch       & Left shoulder joint right and left    & -110 to 30  \\
-  RShoulderPitch       & Right shoulder joint right and left   & -30 to 110 \\
+  LShoulderRoll       & Left shoulder joint right and left    & -110 to 30  \\
+  RShoulderRoll       & Right shoulder joint right and left   & -30 to 110 \\
   \rowcolor[HTML]{C0C0C0}
   \textbf{Joint Angle} & \textbf{Motion} & \textbf{Range (deg)} \\
   \hline
-  LElbowRoll           & Left Elbow joint front and back       & -120 to 10  \\
-  RElbowRoll           & Left Elbow joint front and back       & -10 to 120  \\
+  LElbowPitch           & Left Elbow joint front and back       & -120 to 10  \\
+  RElbowPitch           & Left Elbow joint front and back       & -10 to 120  \\
   \hline
 \end{longtable}
 
@@ -145,13 +145,12 @@ Lastly, the \verb|"start_delay"| field denotes any delay before the action begin
   caption={JSON Format to Save Joints Value.},
   label={lst:json-save-joints}
 ]
-
+{
   "poses": [
     {
       "joints": {
         "left_ankle_pitch": 25,
         "left_ankle_roll": 0,
-        ...
       },
       "name": "pose name",
       "pause": 0,
@@ -160,7 +159,7 @@ Lastly, the \verb|"start_delay"| field denotes any delay before the action begin
   ],
   "start_delay": 0,
   "stop_delay": 0
-
+}
 \end{lstlisting}
 
 
@@ -308,7 +307,7 @@ bounding-box format in YOLO is: x (center), y (center), width, and height also a
 
 The hyperparameters to train YOLO-pose followed the description in their GitHub named \emph{hyp.pose.yaml}.
 We use SGD optimizer with a cosine scheduler. The base learning rate is set to 10\textsuperscript{-2}, batch size 16,
-and weight decay of 5\textsuperscript{-4} for total 150 epochs. There are also data augmentation like random scale ([0.5, 1.5]),
+and weight decay of 5\textsuperscript{-4} for total 100 epochs. There are also data augmentation like random scale ([0.5, 1.5]),
 random translation [-10, 10], mosaic augmentation with probability 1, and various color augmentations.
 It is the same with previous section, the main program for training has been provided using PyTorch framework too, but the program is intended for humans with 17 keypoints.
 If we run it directly with our dataset with 6 keypoints, an error will be raised. Therefore, a little bit of code needs to be changed to make the training process can be run.
