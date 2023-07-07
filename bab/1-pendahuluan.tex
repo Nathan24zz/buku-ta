@@ -1,105 +1,91 @@
-\chapter{INTRODUCTION}
-\label{chap:introduction}
+\chapter{PENDAHULUAN}
+\label{chap:pendahuluan}
 
 % Ubah bagian-bagian berikut dengan isi dari pendahuluan
-This study is motivated by various conditions that become a reference. Apart from that, there are also some problems that
-will be answered as an outcome of the study.
+Bab ini menjelaskan mengenai garis besar tugas akhir yang meliputi latar belakang, 
+rumusan masalah, batasan masalah, tujuan, dan manfaat tugas akhir. Dari penjelasan yang 
+ditulis dalam bab ini, diharapkan gambaran umum pada tugas akhir kali ini dapat dipahami.
 
-\section{Background}
-\label{sec:background}
+\section{Latar Belakang}
+\label{sec:latar-belakang}
 
-Robots have experienced significant development over the last few years 
-because of their ability to perform multiple tasks quickly and precisely.
-One form of development is socially assistive robots (SARs). 
-SARs are a type of robot that combines the aspects of assistive robotics (AR)
-and socially interactive robotics (SIR), so it makes SARs a robot capable of providing assistance to users in the form of social interaction \parencite{feil2005}.
+Robot telah mengalami perkembangan yang signifikan selama beberapa tahun terakhir karena kemampuannya untuk melakukan banyak tugas dan pekerjaan secara cepat dan tepat. Salah satunya adalah \emph{socially assistive robots} (SARs). SARs merupakan jenis robot dalam bidang \emph{socially assistive robotics} yang menggabungkan aspek yang ada pada \emph{assistive robotics} dan \emph{socially interactive robotics} sehingga menjadikan SARs sebagai robot yang mampu memberikan bantuan kepada pengguna dalam bentuk interaksi sosial \parencite{feil2005}.
 
-Regular physical activity is a central protective factor for health.
-A report from WHO says that lack of physical activity contributes to around 3.2 million premature deaths each year worldwide.
-The research also shows that regular exercise can help older adults improve physical fitness, immune system, sleep quality, stress levels, and overcome other health problems \parencite{lotfi2018}.
-However, motivation to engage in physical activity declines with age. 
-This is due to understaffed and high costs of personal trainers as well as the elderly who cannot be permanently motivated and instructed to engage in physical activity.
-Based on research conducted by \parencite{ruf2020} it can be concluded that the use of humanoid robot can motivate older people to carry out regular physical activity.
+Aktivitas fisik secara teratur merupakan salah satu faktor yang penting bagi kesehatan. Sebuah laporan dari \emph{WHO} menyebutkan bahwa kurangnya aktivitas fisik itu berkontribusi pada sekitar 3,2 juta kematian dini setiap tahun di seluruh dunia.
+Penelitian tersebut juga menunjukkan bahwa olahraga secara teratur dapat membantu orang tua dewasa untuk dapat meningkatkan kebugaran fisik, sistem kekebalan tubuh, kualitas tidur, tingkat stres dan mengatasi masalah-masalah kesehatan lainnya \parencite{lotfi2018}. Namun, motivasi untuk melakukan aktivitas fisik menurun seiring bertambahnya usia. Hal ini disebabkan oleh kurangnya staf dan tingginya biaya pelatih pribadi serta orang lanjut usia yang tidak dapat dimotivasi secara permanen serta diinstruksikan untuk terlibat dalam aktivitas fisik. Berdasarkan penelitian yang dilakukan oleh \parencite{ruf2020} dapat disimpulkan bahwa penggunaan robot humanoid dapat memotivasi orang lanjut usia untuk melakukan aktivitas fisik secara reguler.
 
-The application of SARs is very diverse, for example, humanoid robot that become physical trainers for children \parencite{güneysu2017}, 
-robotic systems for physical training of the elderly \parencite{avioz2021}, and so on. The methods used also vary, for instance, 
-you can put sensors on the user and get feedback, then provide a response based on the data obtained through the sensor \parencite{güneysu2017}. 
-Another method is to use pose estimation obtained through \emph{deep learning} models.
-However, previous studies have only compared the angle and depth of each keypoint from estimated human pose within certain boundaries or compared the results of human poses with the poses that are used as a guide. \parencite{romeo}
-There is still little study that directly compares the suitability between poses performed by human and robot.
+Penerapan dari SARs sangatlah beragam, contohnya seperti humanoid robot yang menjadi pelatih fisik bagi anak-anak \parencite{güneysu2017},
+sistem robot untuk pelatihan fisik orang lanjut usia \parencite{avioz2021}, dan lain sebagainya. Metode yang digunakan juga bermacam-macam,
+contohnya dapat mengenakan sensor pada pengguna dan mendapatkan umpan balik, kemudian memberikan respon berdasarkan data yang didapat melalui sensor tersebut \parencite{güneysu2017}.
+Metode lainnya adalah memnggunakan estimasi pose yang didapat melalui model \emph{deep learning}.
+Akan tetapi penelitian terdahulu hanya membandingkan sudut dan kedalaman dari setiap sendi atau \emph{keypoint} dari estimasi pose manusia (pengguna) dengan batasan tertentu atau membandingkan hasil pose manusia dengan pose yang dijadikan panduan \parencite{romeo}.
+Masih sedikit penelitian yang membandingkan secara langsung kecocokan antara pose yang dilakukan oleh manusia dan pose yang dicontohkan oleh robot secara langsung.
 
-For that, on this occasion, we propose study related to upper body human pose mimicry by humanoid robot using cosine similarity function. 
-In addition to finding the best pose estimation method for both humanoid robot and human, this study will also compare poses between them and make a web for controlling their interaction.
-This is intended so that it can be implemented in real robot or maybe in an educational game in the future.
+Untuk itu, pada kesempatan ini kami mengajukan penelitian terkait imitasi pose tubuh bagian atas manusia oleh robot \emph{humanoid} menggunakan kesamaan kosinus.
+Selain mencari metode estimasi pose terbaik dan membandingkan kecocokan antara estimasi pose robot \emph{humanoid} dan pose manusia, penilitian ini juga membuat website untuk mengontrol interaksi diantara keduanya.
 
-\section{Problem}
-\label{sec:problem}
+\section{Permasalahan}
+\label{sec:permasalahan}
 
-The problem that can be drawn are there have been studies on pose estimation for robot with skin but no one has done it on robot without skin (for example Ichiro's robot).
-There are not many studies that directly compare the estimated poses of humanoid robot with human. 
-For this reason, a study is needed to know the suitability of humanoid robot poses and human poses. 
-In addition, it is also necessary to add Ichiro's pose dataset to the HumanoidRobotPose dataset and find the best pose estimation model for humanoid robot.
+Dari latar belakang yang telah dipaparkan sebelumnya, maka permasalahan yang dapat
+diambil adalah belum banyaknya studi yang membandingkan secara langsung estimasi pose
+humanoid robot dengan manusia. Untuk itu, diperlukan studi yang membandingkan kecocokan
+estimasi pose robot humanoid dengan pose manusia. Selain itu, diperlukan juga adanya penambahan dataset pose robot Ichiro pada HumanoidRobotPose dataset serta mencari model estimasi
+pose terbaik untuk humanoid robot dan manusia.
 
-\section{Goal}
-\label{sec:goal}
+\section{Tujuan}
+\label{sec:tujuan}
 
-The purpose of this study is to create a new dataset that merges Ichiro's poses dataset and the HumanoidRobotPose dataset so it can increase the diversity of the data. In addition,
-we will look for the best pose estimation method for human and humanoid robot. Third, comparing the suitability of humanoid robot pose with human poses.
+Tujuan dari penelitian ini adalah membuat dataset pose robot ichiro untuk ditambahkan
+pada HumanoidRobotPose dataset sehingga dapat menambah keberagaman data. Selain itu,
+menggunakan dataset yang sudah ditambahkan sebelumnya, kami akan mencari metode estimasi pose terbaik bagi humanoid robot. Ketiga, membandingkan kecocokan estimasi pose
+robot humanoid dengan pose manusia.
 
-\section{Study Limits}
-\label{sec:studylimits}
+\section{Batasan Masalah}
+\label{sec:batasan-masalah}
 
-The limitations of the problem in focusing on the problems formulated in this study are:
+Batasan-batasan masalah serta ruang lingkup penelitian yang dilakukan berdasarkan
+permasalahan yang ada adalah sebagai berikut
 
 \begin{enumerate}[nolistsep]
 
-  \item Merging NimbRo's HumanoidRobotPose dataset and Ichiro's dataset to form a new dataset that is more diverse.
-  \item Doing a test using the new dataset to look for the best robot pose estimation algorithm from the following methods: RCNN, NimbRo, and YOLO.
-  \item Looking for human pose estimation detection algorithms that best match with robot poses include: OpenPose, MediaPipe, and YOLO.
-  \item Training is carried out on the ITS supercomputer (DGX) and then implemented on computer devices with limited computing capabilities (e.g. NUC i5)
+  \item Menggabungkan HumanoidRobotPose dataset milih NimbRo dan dataset Ichiro untuk membentuk dataset baru yang lebih beragam.
+  \item Melakukan pengujian terhadap dataset baru untuk mencari algoritma pose estimasi terbaik robot dari beberapa metode berikut: Model NimbRo, Keypoint RCNN, dan YOLO-pose.
+  \item Mencari algoritma deteksi estimasi pose manusia yang paling cocok dengan pose robot meliputi: OpenPose, MediaPipe, YOLO-pose.
+  \item Proses training dilakukan pada superkomputer ITS (DGX) dan diimplementasikan pada perangkat komputer dengan kemampuan komputasi yang terbatas (misal NUC i5).   
 
 \end{enumerate}
 
-\section{Writing System}
-\label{sec:writingsystem}
+\section{Manfaat}
+\label{sec:manfaat}
 
-This final project study is arranged in a systematic manner.
-It is structured so that it is easy for readers to understand and learn.
-This final project study is divided into several sections as follows:
+Manfaat dari penilitian ini adalah:
 
 \begin{enumerate}[nolistsep]
 
-  \item \textbf{CHAPTER I Introduction}
+  \item \textbf{Bagi penulis}
 
-        Chapter 1 of this book contains a description of the background, problem raised, goal, limitations of the study, and writing system.
-
-        \vspace{2ex}
-
-  \item \textbf{CHAPTER II Literature Study}
-
-        Chapter 2 describes supporting theories related to this study, such as descriptions of pose estimation, Human and Humanoid Robot Pose Estimation, Robot Operating Systems (ROS), and so forth.
-
-        \vspace{2ex}
-
-  \item \textbf{CHAPTER III Design and System Implementation}
-
-        Chapter 3 describes system design and implementation, this section will be divided into two parts: RECORD and PLAY mode.
-        In RECORD mode, it starts with a human image and then does pose estimation to get human keypoints. After that, converting the angle between 2 keypoints into a servo value
-        so we can move the robot's servo to mimic human movement and save it for PLAY mode.
-        On the other hand, in PLAY mode, the input is 2: human image and humanoid robot image. Then, we perform pose estimation for both images. Before doing keypoint normalization,
-        we have to choose 6 human keypoints based on humanoid robot keypoints. Lastly, we compare those keypoints and get the result.
+      Seluruh proses yang dijalani penulis dalam pelaksanaan perancangan Tugas Akhir ini
+      memberikan banyak manfaat kepada penulis, antara lain seperti mengasah kepekaan
+      terhadap permasalahan nyata yang dihadapi oleh masyarakat, pola pikir yang kritis, logis
+      dan sistematis dalam perumusan sintesis pemecahan masalah, ilmu-ilmu pengetahuan
+      baru yang menambah wawasan penulis, keterampilan dalam menyusun tugas akhir ini
+      hingga akhir dan lain sebagainya.
 
         \vspace{2ex}
 
-  \item \textbf{CHAPTER IV Results and Discussion}
-
-        Chapter 4 consists of training graphics and the results obtained from the tests performed, such as comparing humanoid robot models performance based on \emph{mAP}, \emph{mAR}, time inference,
-        and real detection result.
-
+  \item \textbf{Bagi Institusi}
+      Melalui laporan Tugas Akhir ini, penulis berharap dapat memberikan inspirasi dan
+      referensi terkait inovasi - inovasi dalam bidang \emph{deep learning} khususnya dalam bidang pose estimasi.
+      Sehingga perancangan ini tidak berhenti sampai disini saja namun
+      dapat terus berkembang dan menjadi suatu sistem yang sempurna di masa yang akan datang.
+        
         \vspace{2ex}
 
-  \item \textbf{CHAPTER V Conclusion}
+  \item \textbf{Bagi Masyarakat}
 
-        Conclusions from the study and suggestions for further research are described in chapter 5 in this book.
-
+      Penulis berharap bahwa melalui pembuatan Tugas Akhir ini dapat menjadi sebuah solusi yang
+      tepat sasaran baik dari aspek permasalahan maupun kebutuhan masyarakat sehingga dapat
+      memberikan manfaat yang nyata dalam kehidupan sehari-hari.
+  
 \end{enumerate}

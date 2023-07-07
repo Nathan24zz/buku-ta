@@ -49,7 +49,7 @@
 \patchcmd{\cleardoublepage}{\hbox{}}{
   \thispagestyle{empty}
   \vspace*{\fill}
-  \begin{center}\textit{[This page is intentionally left blank]}\end{center}
+  \begin{center}\textit{[Halaman ini sengaja dikosongkan]}\end{center}
   \vfill}{}{}
 
 % Pengaturan penomoran halaman
@@ -95,7 +95,7 @@
 
 % Pengaturan format judul bab
 \usepackage{titlesec}
-\titleformat{\chapter}[display]{\bfseries\Large}{CHAPTER \centering\Roman{chapter}}{0ex}{\vspace{0ex}\centering}
+\titleformat{\chapter}[display]{\bfseries\Large}{BAB \centering\Roman{chapter}}{0ex}{\vspace{0ex}\centering}
 \titleformat{\section}{\bfseries\large}{\MakeUppercase{\thesection}}{1ex}{\vspace{1ex}}
 \titleformat{\subsection}{\bfseries\large}{\MakeUppercase{\thesubsection}}{1ex}{}
 \titleformat{\subsubsection}{\bfseries\large}{\MakeUppercase{\thesubsubsection}}{1ex}{}
@@ -188,19 +188,19 @@
 \cleardoublepage
 
 % Daftar isi
-\renewcommand*\contentsname{CONTENTS}
+\renewcommand*\contentsname{DAFTAR ISI}
 \addcontentsline{toc}{chapter}{\contentsname}
 \tableofcontents
 \cleardoublepage
 
 % Daftar gambar
-\renewcommand*\listfigurename{LIST OF FIGURES}
+\renewcommand*\listfigurename{DAFTAR GAMBAR}
 \addcontentsline{toc}{chapter}{\listfigurename}
 \listoffigures
 \cleardoublepage
 
 % Daftar tabel
-\renewcommand*\listtablename{LIST OF TABLES}
+\renewcommand*\listtablename{DAFTAR TABEL}
 \addcontentsline{toc}{chapter}{\listtablename}
 \listoftables
 \cleardoublepage
