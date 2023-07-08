@@ -173,7 +173,7 @@ Akhirnya, setiap \emph{head head} bercabang menjadi \emph{box head} dan \emph{ke
 \subsection{Estimasi Pose Robot \emph{Humanoid}}
 \label{subsec:estimasi-pose-robot-humanoid}
 
-Robot \emph{humanoid} dan manusia memiliki bentuk fisik yang mirip, dimana hal ini memiliki kelebihan dan kekurangannya masing-masing. Di satu sisi, hal ini memungkinkan kita untuk menggunakan metode estimasi pose yang awalnya ditujukan untuk manusia kepada robot, tetapi di sisi lain, hal ini juga mempersulit kita untuk membedakan antara manusia dan robot humanoid \parencite{amini2021}.
+Robot \emph{humanoid} dan manusia memiliki bentuk fisik yang mirip, di mana hal ini memiliki kelebihan dan kekurangannya masing-masing. Di satu sisi, hal ini memungkinkan kita untuk menggunakan metode estimasi pose yang awalnya ditujukan untuk manusia kepada robot, tetapi di sisi lain, hal ini juga mempersulit kita untuk membedakan antara manusia dan robot humanoid \parencite{amini2021}.
 Seperti yang dijelaskan di Bagian \ref{subsec:estimasi-pose}, secara umum, upaya untuk mengatasi masalah estimasi pose sangat bergantung pada jumlah orang (satu orang atau lebih dari satu), untuk  multi-orang dapat dibagi lagi menjadi pendekatan top-down atau bottom-up.
 Dalam pendekatan top-down, tahap awal adalah mengidentifikasi setiap individu dalam gambar lalu mengimplementasikan estimasi pose untuk tiap individu.
 Salah satu kelemahan pendekatan ini adalah performa model sangat terkait dengan performa detektor orang. Waktu eksekusinya sangat terpengaruh oleh jumlah orang yang ada karena estimasi pose satu-orang dijalankan untuk setiap deteksi. Karena biaya komputasinya yang meningkat secara linear seiring dengan peningkatan jumlah orang, sering kali performanya tidak real-time \parencite{amini2021}.
@@ -190,7 +190,7 @@ Terdapat tiga Model estimasi pose untuk robot humanoid yang kami latih ulang men
 Model NimbRo memilih untuk menggunakan arsitektur yang mirip dengan NimbRo-Net dan NimbRo-Net2 karena memiliki hasil yang positif.
 Model mereka merupakan jaringan \emph{encoder-decoder} dengan gambar \emph{input} RGB berdimensi \emph{w x h}. Alih-alih menggunakan \emph{decoder} untuk membuat ekstraktor fitur yang unggul, mereka mengamati bahwa lebih penting untuk menggunakan \emph{encoder} yang lebih dalam.
 Model ResNet yang telah dilatih sebelumnya \parencite{he2016} digunakan sebagai \emph{encoder}, dan lapisan \emph{fully connected} serta \emph{global average pooling} di bagian akhir telah dihilangkan.
-Layer pertama adalah konvolusi 7 x 7 dengan langkah 2, diikuti oleh layer \emph{max-pooling}. Empat modul lainnya dari \emph{encoder} adalah blok residual dimana memiliki resolusi yang lebih rendah dan kedalaman yang lebih tinggi seiring dengan peningkatan jumlah modul.
+Layer pertama adalah konvolusi 7 x 7 dengan langkah 2, diikuti oleh layer \emph{max-pooling}. Empat modul lainnya dari \emph{encoder} adalah blok residual di mana memiliki resolusi yang lebih rendah dan kedalaman yang lebih tinggi seiring dengan peningkatan jumlah modul.
 Tergantung pada arsitektur ResNet yang dipilih, setiap blok residual terdiri dari dua atau tiga layer konvolusi, diikuti oleh normalisasi batch, aktivasi ReLU, dan koneksi shortcut. Layer awal memiliki informasi spasial yang lebih detail,
 sedangkan layer terakhir mengandung informasi semantik yang lebih banyak \parencite{amini2021}.
 
@@ -229,7 +229,7 @@ Di sisi lain, \textit{keypoint head} memperoleh resolusi output 56 x 56 melalui 
 \label{subsec:ros2}
 
 \textit{Robot Operating System} (ROS) \parencite{quigley} merupakan sebuah \textit{open source} \textit{robotics middleware} yang digunakan untuk membantu pengembangan sistem yang ada pada robot. Fitur utama
-pada ROS adalah desain sistem dimana data yang diterima maupun dikirim ke setiap komponen yang ada pada robot dilakukan secara terabstraksi dengan adanya \textit{hardware abstraction}. Melalui hal tersebut, algoritma yang ada pada suatu program
+pada ROS adalah desain sistem di mana data yang diterima maupun dikirim ke setiap komponen yang ada pada robot dilakukan secara terabstraksi dengan adanya \textit{hardware abstraction}. Melalui hal tersebut, algoritma yang ada pada suatu program
 dapat digunakan pada robot yang berbeda, terlepas dari perbedaan perangkat yang ada di setiap robot.
 ROS menggunakan \textit{graph architecture} untuk memungkinkan terjadinya \textit{hardware abstraction} sehingga suatu \textit{node} dapat berkomunikasi dengan \textit{node} lain melalui sebuah \textit{topic} yang sama.
 \textit{Hardware abstraction} tersebut terbentuk dengan menggunakan \textit{topic} yang memiliki nama dan struktur data yang sama yang merepresentasikan jenis komponen yang dimiliki suatu robot.
@@ -253,7 +253,7 @@ Setiap \textit{node} dapat berkomunikasi dengan \textit{node} lain melalui dua c
 \textit{topic} yang nantinya akan diterima oleh \textit{node} lain dengan \textit{subscriber} yang terhubung dengan topic tersebut. Selain itu, sebuah \textit{node}
 dengan \textit{service client} juga dapat mengirimkan sebuah data \textit{request} melalui \textit{service} yang nantinya akan diolah dan dikirim balik dalam
 bentuk data \textit{response} oleh \textit{node} lain yang memiliki \textit{service server} yang terhubung dengan \textit{service} tersebut.
-Proses komunikasi antar-\textit{node} tersebut dilakukan secara terabstraksi, dimana suatu node akan mengirimkan data ke suatu \textit{topic} maupun \textit{service}, terlepas dari apakah data tersebut
+Proses komunikasi antar-\textit{node} tersebut dilakukan secara terabstraksi, di mana suatu node akan mengirimkan data ke suatu \textit{topic} maupun \textit{service}, terlepas dari apakah data tersebut
 akan diterima oleh \textit{node} lain atau tidak. Setiap \textit{node} nantinya cukup mengirimkan data ke \textit{topic} atau \textit{service} dengan nama dan tipe
 \textit{interface} yang sesuai agar data tersebut dapat dikirimkan secara terabstraksi ke \textit{node} lain.
 Selain \textit{topic} dan \textit{service}, ROS 2 juga mengenal bentuk lain dari jalur komunikasi antar-\textit{node} yang disebut sebagai \textit{action}. Tetapi karena hal ini tidak digunakan pada penelitian ini maka kita tidak akan mendiskusikannya lebih lanjut. 

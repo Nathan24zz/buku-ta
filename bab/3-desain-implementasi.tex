@@ -1,76 +1,81 @@
-\chapter{DESIGN AND IMPLEMENTATION}
+\chapter{DESAIN DAN IMPLEMENTASI}
 \label{chap:design-and-implementation}
 
 % Ubah bagian-bagian berikut dengan isi dari desain dan implementasi
 
-This chapter describes the design and implementation of the system that has been created.
-As seen in Figure \ref{fig:block-diagram}, there are 2 main block diagrams. The left one is a block diagram for RECORD mode and the right one is for PLAY mode.
-In RECORD mode, it starts with a human image and then does pose estimation to get human keypoints. After that, we convert the angle between 2 keypoints into a servo value so we can move the robot's servo to mimic human movement and save it for PLAY mode.
-On the other hand, in PLAY mode, the input is 2: human image and humanoid robot image. Then, we perform pose estimation for both images. Before doing keypoint normalization, we have to choose 6 human keypoints based on humanoid robot keypoints. Lastly, we compare those keypoints and get the result.
+Bab ini menjelaskan desain dan implementasi dari sistem yang telah dibuat.
+Seperti yang terlihat pada Gambar \ref{fig:block-diagram}, terdapat 2 diagram blok utama. Di bagian kiri adalah diagram blok untuk mode \textit{RECORD} dan diagram blok kanan adalah untuk mode \textit{PLAY}.
+Pada mode \textit{RECORD}, dimulai dengan citra manusia yang menjadi input ke estimasi pose untuk mendapatkan \textit{keypoint} manusia.
+Setelah itu, melakukan konversi sudut antara 2 \textit{keypoint} menjadi nilai servo sehingga dapat menggerakkan servo-servo robot untuk menirukan gerakan manusia serta menyimpannya untuk mode \textit{PLAY}.
+Di sisi lain, input pada mode \textit{PLAY} terdiri dari 2 yaitu citra manusia dan citra robot \textit{humanoid}.
+Kemudian, dilakukan estimasi pose untuk kedua citra tersebut. Sebelum melakukan normalisasi \textit{keypoint}, dilakukan pemilihan 6 \textit{keypoint} manusia berdasarkan \textit{keypoint} robot \textit{humanoid}.
+Terakhir, membandingkan \textit{keypoint} tersebut serta mendapatkan hasilnya.
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=1.23]{gambar/diagram-block-revisi.png}
-  \caption{Block Diagram of Workflow.}
+  \includegraphics[scale=1.2]{gambar/diagram-block-revisi.png}
+  \caption{Blok Diagram dari Alur Pengerjaan.}
   \label{fig:block-diagram}
 \end{figure}
-In the section that follows, each block is explained in further depth. Note that maybe there is a merge explanation if we use the same technique for different blocks. For instance, a block that sends a human image to the client and the block that send a robot image to the client will be merged to become just send an image to the client.
+Pada bagian berikutnya, setiap blok akan dijelaskan secara lebih rinci. Perlu diperhatikan bahwa mungkin ada penjelasan yang digabung jika kita menggunakan teknik yang sama untuk blok yang berbeda.
+Misalnya, blok yang mengirimkan citra manusia ke klien dan blok yang mengirimkan citra robot ke klien akan digabung menjadi hanya mengirimkan citra ke klien.
 
 
-\section{Input Image}
+\section{Citra Input}
 \label{sec:input-image}
 
-The input image that is fed into both models (human and humanoid robot) is 640x480 pixels with RGB channels. The device for getting the image is the Logitech C920 Webcam. We use OpenCV library to open the camera and capture the image.
+Citra input yang dimasukkan ke dalam dua model (manusia dan robot \textit{humanoid}) memiliki ukuran 640x480 piksel dengan saluran RGB.
+Perangkat yang digunakan untuk mendapatkan citra adalah Logitech C920 Webcam. Kami menggunakan \textit{library} OpenCV untuk membuka kamera dan mengambil citra.
 
 
-\section{Human Pose Estimation}
-\label{sec:human-pose-estimation}
+\section{Estimasi Pose Manusia}
+\label{sec:estimasi-pose-manusia}
 
-Since there are already many pose estimation models for humans out there, we do not need to retrain them and just compare them to find the best model. In order to compare the models, we selected a paper for reference.
-So evaluation metrics based on paper and real detection results will be shown in Chapter \ref{chap:resultsandiscussion} but for inference time, we will try in NUC i5. The models that we compare include OpenPose, MediaPipe, and YOLO-pose.
-The input for these models is an RGB image and the output is the location of human keypoints.
+Dikarena sudah banyaknya model estimasi pose untuk manusia yang tersedia, kami tidak perlu melakukan pelatihan ulang dan hanya membandingkannya untuk mencari model terbaik melalui referensi dari beberapa makalah.
+Metrik evaluasi berdasarkan paper dan hasil deteksi setiap model akan ditunjukkan pada Bab \ref{chap:resultsandiscussion}, namun untuk waktu inferensi akan dicoba pada NUC i5.
+Model-model yang dibandingkan adalah OpenPose, MediaPipe Pose, dan YOLO-pose. Input untuk model-model ini adalah citra RGB lalu outputnya adalah lokasi \textit{keypoint} manusia.
 
-
-\section{Send Image to Client}
+\section{Mengirim Citra ke Klien}
 \label{sec:send-image-to-client}
 
-Our main program uses websites to interact with users because of its flexibility on any platform, the website view can be seen in Figure \ref{fig:websiteview}. So there is a Javascript client and a Python Server that communicate via \emph{socketio}.
-The server will send human image to the client so we can adjust our position in the camera. This is done to enable the robot to capture the entire human pose.
+Program utama kami menggunakan website untuk berinteraksi dengan pengguna karena fleksibilitasnya pada berbagai \textit{platform}, tampilan website dapat dilihat pada Gambar \ref{fig:websiteview}. 
+Akan ada klien Javascript dan Server Python yang berkomunikasi melalui \emph{socketio}.
+Server akan mengirimkan citra manusia ke klien sehingga kita dapat menyesuaikan posisi kita di depan kamera. Hal ini dilakukan agar robot dapat mengambil seluruh pose manusia.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.7]{gambar/web.png}
-  \caption{Website View.}
+  \caption{Tampilan Website.}
   \label{fig:websiteview}
 \end{figure}
-The main program is divided into two modes, RECORD mode and PLAY mode. In RECORD mode, a human as a trainer gives a series of movements and will be followed by a humanoid robot, as well as robot saves these movements to use in PLAY mode later.
-Meanwhile, in the PLAY mode, the robot acts as a trainer and performs a series of movements according to the movements previously stored in RECORD mode. Human will follow the robot's movement while the robot is also saving both human and robot images and comparing them later.
+Program utama ini terbagi menjadi dua mode, yaitu mode \textit{RECORD} dan mode \textit{PLAY}. Pada mode \textit{RECORD}, manusia berperan sebagai pelatih dan memberikan serangkaian gerakan yang akan ditiru oleh robot \textit{humanoid} serta gerakan tersebut akan disimpan oleh robot untuk digunakan di mode \textit{PLAY} nantinya.
+Sementara itu, pada mode \textit{PLAY}, robot bertindak sebagai pelatih dan memperagakan serangkaian gerakan sesuai yang disimpan pada mode \textit{RECORD}. Manusia akan meniru gerakan robot selagi robot juga menyimpan citra manusia dan citra robot lalu membandingkannya nanti.
 
-After getting human's keypoint, the server will visualize the detection result and send it as a buffer to the client.
-On the client side, we use ReactJS library. There are four buttons: RECORD, PLAY, START, and STOP button. The RECORD and PLAY button indicates the modes in the main program, while the START and STOP button tell us when the mode is started or stopped.
-There is a different color after we click on a button to indicate that we have pressed that button.
-Apart from that, there are also two images that show human and robot image, actually in RECORD mode there is only one image (human image), while in PLAY mode there are 2 images (human and robot image). 
-In our program, we define that client and server communicate through port 5555, where server can send image to client and client can send some data back to the server like current mode and time to start or stop the mode.
-We use the \emph{useEffect} function to indicate if there is a change in a particular variable and do something like converting the image from the buffer to a string in order to display it on the HTML image tag.
+Setelah mendapatkan \textit{keypoint} manusia, server akan memvisualisasikan hasil deteksinya dan mengirimkan sebagai buffer ke klien.
+Di sisi klien, kami menggunakan \textit{library ReactJS}. Terdapat empat tombol: tombol \textit{RECORD}, \textit{PLAY}, \textit{START}, dan \textit{STOP}. Tombol \textit{RECORD} dan \textit{PLAY} mengindikasikan mode dalam program utama, sementara tombol \textit{START} dan \textit{STOP} memberitahu kapan mode dimulai atau dihentikan.
+Setelah mengklik tombol, tombol tersebut akan berubah warna untuk menunjukkan bahwa tombol tersebut sudah ditekan.
+Selain itu, terdapat dua citra yang menampilkan citra manusia dan robot. Sebenarnya, pada mode \textit{RECORD} hanya ada satu citra (citra manusia), sedangkan pada mode \textit{PLAY} terdapat 2 citra (citra manusia dan citra robot).
+Klien dan server berkomunikasi melalui port 5555, di mana server dapat mengirim citra ke klien dan klien dapat mengirim beberapa data kembali ke server seperti mode saat ini dan waktu untuk memulai atau menghentikan mode.
+Kami menggunakan fungsi \emph{useEffect} untuk mengindikasi jika terdapat perubahan pada variabel tertentu dan melakukan sesuatu seperti mengonversi citra dari buffer menjadi \textit{string} untuk ditampilkan pada tag HTML.
 
 
-\section{Convert Angle to Servo Value}
+\section{Konversi Sudut ke Nilai Servo}
 \label{sec:convert-angle-to-servo-value}
 
-This section and Section \ref{sec:move-robot-servo} are triggered when the button RECORD and START is pressed on the website, so the client sends this information to the server and it does the calculation. 
-To be able to move a robot's upper body like human movement, we need to obtain the angle between 2 keypoint using the \emph{arc tangent} function with the input \emph{\{x,y\}} keypoint coordinate.
-Since we use MediaPipe Pose to detect human keypoints based on the result and discussion in Section \ref{sec:humanmodelcomparison}, the output is a normalized point, so we multiplied the x and y coordinates with the width and height image respectively to get the real pixel value.
-Afterward, we subtract the second y keypoint value with the first y keypoint value and divided it by the second x keypoint value subtract with the first x keypoint value, and input the result to the \emph{arc tangent} function, as shown in Equation \ref{eq:arctan}.
+Bagian ini dan Bagian \ref{sec:move-robot-servo} dijalankan ketika tombol \textit{RECORD} dan \textit{START} ditekan pada website, sehingga klien mengirimkan informasi ini ke server dan server melakukan perhitungan.
+Untuk dapat menggerakkan tubuh bagian atas robot sesuai dengan gerakan manusia, kita perlu mendapatkan sudut antara 2 \textit{keypoint} menggunakan fungsi \emph{arc tangent} dengan input koordinat \textit{keypoint} \emph{{x, y}}
+DiKarenakan kami menggunakan MediaPipe Pose untuk mendeteksi \textit{keypoint} manusia berdasarkan hasil dan pembahasan di Bagian \ref{sec:humanmodelcomparison}, outputnya adalah titik yang ternormalisasi, jadi harus dilakukan pengkalian koordinat x dan y dengan lebar dan tinggi gambar masing-masing untuk mendapatkan nilai piksel yang sebenarnya.
+Selanjutnya, kita membagi nilai \textit{keypoint} y dengan nilai \textit{keypoint} x serta menginputkan hasilnya ke fungsi \emph{arc tangent}, seperti yang ditunjukkan dalam Persamaan \ref{eq:arctan}.
 \begin{equation}
   \label{eq:arctan}
   angle = \arctan \left(\frac{Y_2 - Y_1}{X_2 - X_1}\right)
 \end{equation}
 
-There are four angles we want to retrieve which are the angles from the shoulder to the elbow (right and left) and also the elbow to wrist (right and left) in order to robot can mimic upper body human movement.
-If we look at MediaPipe Pose Landmark in Figure \ref{fig:mediapipe-landmark}, 6 keypoints that become our concern are 11, 12 for shoulders, 13, 14 for elbows, 15, and 16 for wrists. 
-We get the right shoulder values by entering landmark 14 as the second argument and landmark 12 as the first argument of the \emph{arc tangent} function. This also applies to get the left shoulder angle value by entering landmarks 13 and 11 respectively. 
-It is slightly different to obtain the elbow angles because we want its angle to be relative to the shoulder angle by subtracting its angle from the shoulder angle. We also apply limitations for each angle to keep the servo safe and not hit the robot body or other servo as seen in Table \ref{tb:robot-servos}.
-
+Ada empat sudut yang ingin diperoleh, yaitu sudut dari bahu ke siku (kanan dan kiri) dan juga siku ke pergelangan tangan (kanan dan kiri) agar robot dapat meniru gerakan bagian atas tubuh manusia.
+Jika kita melihat MediaPipe Pose Landmark pada Gambar \ref{fig:mediapipe-landmark}, 6 \textit{keypoint} yang menjadi perhatian adalah 11, 12 untuk bahu, 13, 14 untuk siku, 15, dan 16 untuk pergelangan tangan.
+Kita mendapatkan nilai sudut bahu kanan dengan memasukkan landmark 14 sebagai argumen kedua dan landmark 12 sebagai argumen pertama dari fungsi \emph{arc tangent}. Hal yang sama juga berlaku untuk mendapatkan nilai sudut bahu kiri dengan memasukkan landmark 13 dan 11 secara berurutan.
+Hal ini sedikit berbeda untuk mendapatkan sudut siku karena kita ingin sudutnya relatif terhadap sudut bahu dengan mengurangi sudutnya dari sudut bahu.
+Kami juga memberlakukan batasan untuk setiap sudut untuk menjaga keamanan servo dan menghindari benturan dengan tubuh robot atau servo lainnya seperti yang terlihat pada Tabel \ref{tb:robot-servos}.
 \begin{longtable}{ccc}
-  \caption{Robot Servos Limitations.}
+  \caption{Limitasi Servo Robot.}
   \label{tb:robot-servos}\\
   \hline
   \rowcolor[HTML]{C0C0C0}
@@ -87,26 +92,26 @@ It is slightly different to obtain the elbow angles because we want its angle to
 \end{longtable}
 
 
-\section{Move Robot's Servos}
+\section{Menggerakkan Servo-servo Robot}
 \label{sec:move-robot-servo}
 
-The program to move the robot's servos takes the same place as the program for the server. Our main program uses ROS2 with Python language. To be able to run the server and ROS2 program simultaneously, we need a separate thread, so the server program does not block the ROS2.
-In the ROS2 framework, every package has its own functionality. On this occasion, we divide the task to move the robot's servo into 2 packages. The first one is named \emph{motion matching} where the server program and angle conversion to servo value happen, the other one is \emph{tachimawari},
-a package that provides a DYNAMIXEL's joints management library for a ROS 2 project. This package name comes from a Japanese word that means motion. Every package has a node with the package's name like Figure \ref{fig:relation-node-record-mode}.
-We can see this node relationship from rqt graph or ROS2 client interfaces, but we choose rqt graph because it is more visual.
+Program untuk menggerakkan servo robot berada di tempat yang sama dengan program untuk \textit{server}. Program utama kami menggunakan ROS2 dengan bahasa Python. Untuk dapat menjalankan program \textit{server} dan program ROS2 secara bersamaan, kami membutuhkan \textit{thread} terpisah sehingga program \textit{server} tidak menghalangi ROS2.
+Dalam \textit{framework} ROS2, setiap \textit{package} memiliki fungsionalitasnya masing-masing. Pada kesempatan ini, kami membagi tugas untuk menggerakkan servo robot menjadi 2 \textit{package}. Yang pertama bernama \emph{motion matching} di mana program server dan konversi sudut menjadi nilai servo terjadi, yang satunya lagi adalah \emph{tachimawari}, sebuah \textit{package} yang menyediakan \textit{management library} sendi DYNAMIXEL untuk proyek ROS 2.
+Nama paket ini berasal dari kata bahasa Jepang yang berarti \textit{motion}. Setiap \textit{package} memiliki sebuah \textit{node} dengan nama \textit{package} itu sendiri seperti yang terlihat pada Gambar \ref{fig:relation-node-record-mode}.
+Hubungan antar node ini dapat dilihat melalui grafik rqt atau \textit{ROS2 client interfaces}, tetapi kami memilih grafik rqt karena lebih visual.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.62]{gambar/rqt_without_akushon.png}
-  \caption{Relationship Between Nodes in RECORD Mode.}
+  \caption{Hubungan Antar \textit{Node} pada mode \textit{RECORD}.}
   \label{fig:relation-node-record-mode}
 \end{figure}
 
-Each node communicates with each other through a topic. There are 2 topics in RECORD mode, which are \verb|joint/set_joints| and \verb|joint/current_joints|. 
-After getting desired servos angle from the previous section, we just need to publish it to \emph{tachimawari} node and it will move the servos. In the \emph{motion matching} node, there is a publisher that publishes servos angle to \verb|joint/set_joints| topic after the detection process and calculation is done, and also a subscriber in \emph{tachimawari} node that subscribes
-to the same topic which collects the data that is published from the publisher. \verb|joint/set_joints| topic uses an interface like code snippet \ref{lst:set-joint-msg}, where there are \verb|control_type| variable with type integer and an array with Joint type, each joint consist of id and position like code snippet \ref{lst:joint-msg}.
+Setiap \textit{node} berkomunikasi satu sama lain melalui topik. Terdapat 2 topik dalam mode \textit{RECORD}, yaitu \verb|joint/set_joints| dan \verb|joint/current_joints|.
+Setelah mendapatkan sudut servo yang diinginkan dari bagian sebelumnya, kita hanya perlu mem-\textit{publish} ke \emph{tachimawari node} dan \textit{node} tersebut akan menggerakkan servonya. Di dalam \emph{motion matching node}, terdapat sebuah \emph{publisher} yang mem-\textit{publish} sudut servo ke topik \verb|joint/set_joints| setelah proses deteksi dan
+perhitungan selesai dilakukan, serta terdapat \emph{subscriber} pada \emph{tachimawari node} yang mendengarkan pada topik yang sama untuk mengumpulkan data yang di-\textit{publish} oleh \emph{publisher}. Topik \verb|joint/set_joints| menggunakan antarmuka seperti yang terlihat pada potongan kode \ref{lst:set-joint-msg}, di mana terdapat variabel \verb|control_type| dengan tipe data \textit{integer} dan sebuah array dengan tipe \textit{Joint}, setiap \textit{Joint} terdiri dari \textit{id} dan \textit{position} seperti pada potongan kode \ref{lst:joint-msg}.
 \begin{lstlisting}[
   language={},
-  caption={Joint msg.},
+  caption={\textit{Joint msg}.},
   label={lst:joint-msg}
 ]
 uint8 id
@@ -115,34 +120,33 @@ float32 position
 
 \begin{lstlisting}[
   language={},
-  caption={SetJoints msg.},
+  caption={\textit{SetJoints msg}.},
   label={lst:set-joint-msg}
 ]
 int8 control_type 4
 Joint[] joints
 \end{lstlisting}
 
-In \verb|tachimawari_node| there is \verb|joint_node| that publishes the current joints every 8ms (it is used in the following section) and has a subscriber that listens to joints that we want to move. 
-In order to move servos to the value that we want, we must enable the torque of all servos first. Then we make a command in array form that contains the servo's id and our desired value or target value (16 bytes) that split into 2 * 8 bytes.
-For example, our target value is 512 (in binary is equal to \verb|00000010 00000000|), and the message that we send is 2 (\verb|00000010|) and 0 (\verb|00000000|). We can acquire that by performing bitwise AND and bitwise right shift. The bitwise AND operation is performed between the target value and \verb|0xFF|, which is represented as \verb|00000000 11111111| in binary.
-Since \verb|0xFF| has 0 bits in the higher byte and 1 bits in the lower byte, the result of the operation is the lower byte of the target value. On the other hand, the bitwise right shift operator is used to shift the bits of the target servo 8 positions to the right. Shifting the bits to the right by 8 positions effectively discards the lower byte, leaving only the higher byte in the result.
-It is the same when we receive the present position from the servo, the servo also sends the data in two bytes (lower and higher) and we need to combine the lower and higher bytes to reconstruct the 16-bit value representing the present position. This can be achieved by performing a left shift operation on the higher byte. Shifting it 8 bits to the left effectively moves it to the higher-order byte position.
-After that, the bitwise OR operator combines the shifted higher byte with the lower byte. This operation merges the two bytes to form a 16-bit value representing the present position.
+Di dalam \verb|tachimawari_node| terdapat \verb|joint_node| yang mempublikasikan nilai sendi saat ini setiap 8ms (akan digunakan pada bagian berikutnya) dan memiliki \emph{subscriber} yang mendengarkan sendi yang ingin kita gerakkan.
+Untuk dapat menggerakkan servonya ke nilai yang diinginkan, kita harus mengaktifkan \emph{torque} dari semua servo terlebih dahulu. Kemudian kita membuat sebuah perintah dalam bentuk \textit{array} yang berisi \textit{id} servo dan nilai yang diinginkan atau nilai target kita (16 \textit{byte}) yang dibagi menjadi 2 * 8 \textit{byte}.
+Sebagai contoh, nilai target kita adalah 512 (dalam bentuk biner sama dengan \verb|00000010 00000000|), pesan yang kita kirim adalah 2 (\verb|00000010|) dan 0 (\verb|00000000|). Hal ini dapat kita peroleh dengan melakukan operasi \textit{bitwise AND} dan \textit{bitwise right shif}t. Operasi \textit{bitwise AND} dilakukan antara nilai target dan \verb|0xFF|, yang direpresentasikan sebagai (\verb|00000000 11111111|) dalam bentuk biner.
+Karena \verb|0xFF| memiliki 0 \textit{bit} di \textit{byte} yang lebih tinggi dan 1 \textit{bit} di \textit{byte} yang lebih rendah, hasil dari operasi tersebut adalah \textit{byte} yang lebih rendah dari nilai target. Di sisi lain, operator \textit{bitwise right shift} digunakan untuk menggeser \textit{bit-bit} servo target 8 posisi ke kanan. Menggeser \textit{bit} ke kanan sejauh 8 posisi secara efektif menghilangkan \textit{byte} yang lebih rendah, sehingga hanya \textit{byte} yang lebih tinggi yang tersisa dalam hasilnya.
+Hal ini juga berlaku ketika kita menerima nilai posisi servo saat ini, servo juga mengirimkan data dalam bentuk dua \textit{byte} (\textit{byte} yang lebih rendah dan \textit{byte} yang lebih tinggi) dan kita perlu menggabungkan kedua \textit{byte} tersebut untuk merekonstruksi nilai 16-\textit{bit} yang mewakili posisi servo saat ini. Hal ini dapat dicapai dengan melakukan operasi \textit{left shift} pada \textit{byte} yang lebih tinggi.
+Menggeser 8 \textit{bit} ke kiri secara efektif memindahkannya ke posisi \textit{byte} yang lebih tinggi. Setelah itu, operasi \textit{bitwise OR} menggabungkan \textit{byte} yang lebih tinggi yang telah digeser dengan \textit{byte} yang lebih rendah. Operasi ini menggabungkan kedua \textit{byte} tersebut untuk membentuk nilai 16-\textit{bit} yang mewakili posisi saat ini.
 
 
-\section{Save Servos Value}
+\section{Menyimpan Nilai Servo}
 \label{sec:save-servo-value}
 
-In the previous section, we discussed a little about the publisher in \emph{tachimawari} package that publishes the value of every current joint of the robot through a \verb|joint/current_joints| topic.
-There is also a subscriber in \verb|motion_matching| node that is retrieved that data and a ROS2 timer that is triggered every 0.5 seconds to save the current joints in a JSON format like code snippet \ref{lst:json-save-joints} so our robot can move according to the movements exemplified by humans. 
-The provided JSON format represents a structured data object that describes a specific action or movement sequence. There is "poses" array contains multiple pose objects, each representing a particular joint configuration during the action.
-Each pose object includes a "joints" sub-object, which lists different joints and their corresponding values. For example, \verb|"left_ankle_pitch"| has a value of 25, \verb|"left_ankle_roll"| is set to 0, and so on. These values represent the positions or angles of the respective joints.
-Each pose object also has a "name" field to identify the pose. The "pause" field specifies the duration of the pause between this pose and the next one, while the "speed" field indicates how fast this pose will be executed.
-Lastly, the \verb|"start_delay"| field denotes any delay before the action begins, and the \verb|"stop_delay"| field signifies the delay after the action finishes before the robot stops. In total, there are 20 servos in our robot, so in the actual JSON file each "joint" sub-object has 20 items with their respective joint names.
-
+Pada bagian sebelumnya, kita telah membahas sedikit mengenai \emph{publisher} dalam \textit{package} \emph{tachimawari} yang mempublikasikan nilai setiap sendi saat ini dari robot melalui topik \verb|joint/current_joints|.
+Terdapat juga \emph{subscriber} di dalam \verb|motion_matching| \textit{node} yang mengambil data tersebut, dan \textit{timer} ROS2 yang dijalankan setiap 0.5 detik untuk menyimpan \emph{current joints} saat ini dalam format JSON seperti pada potongan kode \ref{lst:json-save-joints}, sehingga robot dapat bergerak sesuai dengan gerakan yang diperagakan oleh manusia.
+Format JSON yang disediakan mewakili objek data terstruktur yang menggambarkan tindakan atau urutan gerakan tertentu. Terdapat \textit{array} "\textit{poses}" yang berisi beberapa objek \textit{pose}, masing-masing mewakili konfigurasi \emph{joint} tertentu selama \textit{action} tersebut.
+Setiap objek pose mencakup sub-objek "\textit{joints}", yang mencantumkan berbagai \emph{joint} dan nilai-nilai yang terkait. Misalnya, \verb|"left_ankle_pitch"| memiliki nilai 25, \verb|"left_ankle_roll"| diatur menjadi 0, dan seterusnya. Nilai-nilai ini mewakili posisi atau sudut dari \emph{joint} yang bersangkutan.
+Setiap objek pose juga memiliki bagian "\textit{name}" untuk mengidentifikasi pose tersebut. Bagian "\textit{pause}" menentukan durasi jeda antara pose ini dan pose berikutnya, sedangkan "\textit{speed}" menunjukkan seberapa cepat pose ini akan dieksekusi.
+Terakhir, bagian \verb|"start_delay"| menandakan jeda sebelum tindakan dimulai, dan bagian \verb|"stop_delay"| menandakan jeda setelah tindakan selesai sebelum robot berhenti. Secara keseluruhan, terdapat 20 servo pada robot, sehingga dalam file JSON yang sebenarnya, setiap sub-objek "\textit{joint}" memiliki 20 item dengan nama-nama \emph{joint} yang sesuai.
 \begin{lstlisting}[
   language={},
-  caption={JSON Format to Save Joints Value.},
+  caption={Format JSON untuk Menyimpan Nilai Servo.},
   label={lst:json-save-joints}
 ]
 {
