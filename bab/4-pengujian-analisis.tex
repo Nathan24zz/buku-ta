@@ -1,14 +1,14 @@
-\chapter{RESULTS AND DISCUSSION}
+\chapter{HASIL DAN PEMBAHASAN}
 \label{chap:resultsandiscussion}
 
 % Ubah bagian-bagian berikut dengan isi dari pengujian dan analisis
 
-This section discusses and shows the results from our test and analysis on training humanoid robot model, human model comparison, and also compares their suitability.
-All tests were conducted using the Ichiro robot in the \emph{Robot Cerdas} Laboratory with computer specifications as can be seen in Table \ref{tb:computerspecichiro}.
+Bagian ini membahas dan menunjukkan hasil dari pengujian dan analisis kami pada pelatihan model robot humanoid, perbandingan model manusia, dan juga membandingkan kecocokan antara mereka.
+Semua pengujian dilakukan menggunakan robot Ichiro di Laboratorium \emph{Robot Cerdas} dengan spesifikasi komputer seperti yang terlihat pada Tabel \ref{tb:computerspecichiro}.
 
 \def\arraystretch{1.5}
 \begin{longtable}{|c|c|}
-  \caption{Computer specification on Ichiro robot.}
+  \caption{Spesifikasi Komputer pada robot Ichiro.}
   \label{tb:computerspecichiro}\\
   \hline
   OS      & Ubuntu 20.04.2 LTS \\
@@ -22,79 +22,75 @@ All tests were conducted using the Ichiro robot in the \emph{Robot Cerdas} Labor
 \end{longtable}
 
 
-\section{New Dataset Statistics}
+\section{Statistik Dataset Baru}
 \label{sec:new-dataset-statistics}
 
-This new dataset is a merge of the HumanoidRobotPose dataset and Ichiro's pose dataset. Figure \ref{fig:nimbro-statistics} shows the statistics for the HumanoidRobotPose dataset and Figure \ref{fig:new-dataset-statistics} shows the statistics for the new dataset.
+Dataset baru ini merupakan kombinasi dari dataset HumanoidRobotPose dan dataset milik kami sendiri. Gambar \ref{fig:nimbro-statistics} menunjukkan statistik untuk dataset HumanoidRobotPose, sedangkan Gambar \ref{fig:new-dataset-statistics} menunjukkan statistik untuk dataset baru tersebut.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.8]{gambar/old_dataset.png}
-  \caption{HumanoidRobotPose Statistics.}
+  \caption{Statistik HumanoidRobotPose.}
   \label{fig:nimbro-statistics}
 \end{figure}
-The diversity of the number of robot instances per image is illustrated on the left, and the scale proportions of robot instances is shown on the right. The definition of small, medium, and large scale is identical to the COCO dataset.
-Most of the additions (Ichiro's pose dataset) are one robot instance (from approximately 850 to 1700) and few are two instances per image (from approximately 380 to 430) with large scale, i.e., (segment area \textgreater 96\textsuperscript{2}). 
-This was based on a system requirement that only need pose estimation for one robot and since the distance between the camera and the robot is not that far, the robot object in the image is mainly on a large scale.
+Keanekaragaman jumlah robot tiap gambar diilustrasikan di sebelah kiri, sedangkan proporsi skala robot ditunjukkan di sebelah kanan. Definisi skala kecil, sedang, dan besar sesuai dengan dataset COCO.
+Sebagian besar data yang ditambahkan adalah satu robot (dari sekitar 850 menjadi 1700) tiap gambar dan hanya beberapa yang memiliki dua robot (dari sekitar 380 menjadi 430) dengan skala besar, yaitu (luas area \textgreater 96\textsuperscript{2}).
+Ini didasarkan pada persyaratan sistem yang hanya membutuhkan estimasi pose untuk satu robot dan karena jarak antara kamera dan robot tidak terlalu jauh, objek robot dalam gambar sebagian besar adalah skala besar.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.63]{gambar/new_dataset.png}
-  \caption{New Dataset Statistics.}
+  \caption{Statistik Dataset Baru.}
   \label{fig:new-dataset-statistics}
 \end{figure}
 
 
-\section{Robot's Model Training Result}
+\section{Hasil Pelatihan Model Robot}
 \label{sec:robotmodeltrainingresult}
 
-This section shows training graphics, evaluation metrics about three models, and testing we perform such as visualizing detection results and inference time.
-Figure \ref{fig:nimbro-training-graphics}, \ref{fig:rcnn-training-graphics}, and \ref{fig:yolo-training-graphics} show graphics for training loss (on the left) and validation loss (on the right).
-The training loss graphic shows the trend of the loss value over epochs or iterations during training. It represents how well the model is fitting the training data.
-On the other hand, the validation loss graphic shows the trend of the loss value over epochs or iterations during validation.  It serves as an estimate of how well the model generalizes to unseen data.
+Bagian ini menampilkan grafik pelatihan, metrik evaluasi tentang tiga model, dan pengujian yang kami lakukan seperti visualisasi hasil deteksi dan waktu inferensi.
+Gambar \ref{fig:nimbro-training-graphics}, \ref{fig:rcnn-training-graphics}, dan \ref{fig:yolo-training-graphics} menunjukkan grafik untuk \textit{loss} pelatihan (di sebelah kiri) dan \textit{loss} validasi (di sebelah kanan).
+Grafik \textit{loss} pelatihan menunjukkan tren nilai \textit{loss} terhadap epoch atau iterasi saat pelatihan. Ini mencerminkan seberapa baik model belajar pada data pelatihan.
+Di sisi lain, grafik loss validasi menunjukkan tren nilai \textit{loss} terhadap epoch atau iterasi saat validasi. Ini memberikan perkiraan seberapa baik model menggeneralisasi data yang belum pernah dilihat sebelumnya.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.65]{gambar/loss-nimbro.png}
-  \caption{Nimbro Training Graphics.}
+  \caption{Grafik Pelatihan Nimbro.}
   \label{fig:nimbro-training-graphics}
 \end{figure}
-Training loss and validation loss of NimbRo's model decreased from 0.02 to 0.0006 and 0.0065 to 0.002 respectively. From Figure \ref{fig:rcnn-training-graphics},
-we also can know that training loss and validation loss of Keypoint RCNN decreased from 6.991 to 2.634 and 5.926 to 3.439 respectively. Initially, the training loss is high as the model's parameters are randomly initialized,
-  and the model has not yet learned to make accurate predictions. As the training progresses, the loss generally decreases, indicating that the model is learning and improving its performance.
-The training loss steadily decreases and eventually stabilizes, this indicates the model has converged and training does not need to be continued.
-Like training loss, initially, validation loss is relatively high since the model has not been exposed to the validation data. As the model learns from the training data, the validation loss should decrease,
-  indicating improved generalization performance. The validation loss steadily decreases and stabilizes in the end.
-However, Figure \ref{fig:yolo-training-graphics} indicates that overfitting occurs when we train YOLO-pose. This is shown by a graph of one of validation loss (bounding box loss) that increase, not decrease gradually.
-This is because normally YOLO requires large amounts of data, but in this study, we only had a small dataset for training. For example, when training keypoint detection for human with COCO Dataset 2017,
-  the train set consists of 57K images, whereas the validation and test set consists of 5K and 20K images respectively \parencite{maji2022yolopose}.
-We do not display the total validation loss because the calculation is still wrong (does not sum up all loss yet) so the graphic visualization is also incorrect.
+\textit{Loss} pelatihan dan \textit{loss} validasi pada model NimbRo mengalami penurunan dari 0,02 menjadi 0,0006 dan dari 0,0065 menjadi 0,002. Dari Gambar \ref{fig:rcnn-training-graphics}, kita juga dapat mengetahui bahwa \textit{loss} pelatihan dan \textit{loss} validasi pada Keypoint RCNN mengalami penurunan dari 6,991 menjadi 2,634 dan dari 5,926 menjadi 3,439.
+Awalnya, \textit{loss} pelatihan tinggi karena parameter model diinisialisasi secara acak dan model belum belajar untuk membuat prediksi yang akurat. Seiring berjalannya waktu, \textit{loss} akan mengalami penurunan, menunjukkan bahwa model sedang belajar dan meningkatkan performanya.
+\textit{Loss} pelatihan secara bertahap menurun dan pada akhirnya stabil, ini menunjukkan bahwa model telah konvergen dan pelatihan tidak perlu dilanjutkan.
+Seperti \textit{loss} pelatihan, awalnya \textit{loss} validasi relatif tinggi. Seiring model belajar dari data pelatihan, \textit{loss} validasi seharusnya mengalami penurunan, menunjukkan peningkatan kemampuan generalisasi model. \textit{Loss} validasi secara bertahap menurun dan stabil pada akhirnya.
+Namun, Gambar \ref{fig:yolo-training-graphics} menunjukkan bahwa terjadi \textit{overfitting} saat melatih YOLO-pose. Hal ini ditunjukkan oleh grafik salah satu \textit{loss} validasi (\textit{loss} bounding box) yang meningkat, bukannya secara bertahap menurun. Hal ini terjadi karena biasanya YOLO membutuhkan jumlah data yang besar, namun dalam studi ini, kami hanya memiliki dataset kecil untuk pelatihan.
+Sebagai contoh, saat melatih deteksi \textit{keypoint} manusia dengan dataset COCO 2017, data pelatihan terdiri dari 57 ribu gambar, sedangkan validasi dan tes terdiri dari 5 ribu dan 20 ribu gambar secara berturut-turut \parencite{maji2022yolopose}.
+Kami tidak menampilkan total \textit{loss} validasi karena perhitungannya masih salah (belum menjumlahkan semua \textit{loss}) sehingga visualisasi grafiknya juga tidak benar.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.65]{gambar/loss-rcnn.png}
-  \caption{Keypoint RCNN Training Graphics.}
+  \caption{Grafik Pelatihan Keypoint RCNN.}
   \label{fig:rcnn-training-graphics}
 \end{figure}
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.5]{gambar/loss-yolo.jpg}
-  \caption{YOLO-pose Training Graphics.}
+  \caption{Grafik Pelatihan YOLO-pose.}
   \label{fig:yolo-training-graphics}
 \end{figure}
 
-For the evaluation metrics, NimbRo's Model and Keypoint RCNN use the Object Keypoint Similarity (OKS) with a per-keypoint constant equal to 0.4 for all keypoints.
-YOLO also uses OKS, they follow COCO pose estimation standard evaluation metric.
-In keypoint detection tasks, precision and recall are commonly used as primary metrics because it measures the quality of predictions (precision measures the proportion of correctly predicted keypoints out of all the keypoints prediction and
-  recall measures the proportion of correctly predicted keypoints out of all the actual ground truth). Meanwhile, accuracy is not a relevant metric in keypoint detection because it does not capture the nature of the task effectively.
-The task is focused on localizing and identifying keypoints in an image, rather than classifying the entire image or predicting discrete categories. Thus, measuring accuracy, which typically evaluates overall correctness in classification tasks,
-  may not provide meaningful insights for this task. Moreover, if we want to get accuracy, we need to know the value of True Negative (TN). Since keypoint detection is not a binary classification task (like classifying the absence or presence of keypoints),
-  determining the True Negatives can be challenging. Therefore, the concept of True Negatives is not directly applicable or relevant in this context.
+Untuk metrik evaluasi, Model NimbRo dan Keypoint RCNN menggunakan \textit{Object Keypoint Similarity} (OKS) dengan konstanta per-keypoint sama dengan 0,4 untuk semua keypoints.
+YOLO juga menggunakan OKS yang mengikuti metrik evaluasi standar estimasi pose COCO.
+Dalam tugas deteksi \textit{keypoint}, presisi dan \textit{recall} umumnya digunakan sebagai metrik utama karena metrik ini mengukur kualitas prediksi (presisi mengukur proporsi keypoints yang diprediksi dengan benar dari semua prediksi keypoints dan recall mengukur proporsi keypoints yang diprediksi dengan benar dari semua \textit{ground truth} sebenarnya).
+Sementara itu, akurasi bukan metrik yang relevan dalam deteksi keypoints karena tidak secara efektif mencerminkan sifat tugas tersebut.
+Tugas tersebut berfokus pada lokalisisasi dan identifikasi keypoints dalam sebuah gambar, bukan mengklasifikasikan seluruh gambar atau memprediksi kategori diskrit. Oleh karena itu, mengukur akurasi yang umumnya mengevaluasi keseluruhan kebenaran dalam tugas klasifikasi mungkin tidak memberikan wawasan yang bermakna untuk tugas ini.
+Selain itu, jika kita ingin mendapatkan akurasi, kita perlu mengetahui nilai \textit{True Negative} (TN). Dikarena deteksi keypoints bukan tugas klasifikasi biner (seperti mengklasifikasikan keberadaan atau ketiadaan keypoints), menentukan \textit{True Negative} juga merupakan tantangan tersendiri. Oleh karena itu, konsep \textit{True Negative} tidak secara langsung dapat diterapkan atau relevan dalam konteks ini.
 
-The results on the test set are reported in Table \ref{tb:result-on-test-set}. It can be seen that Keypoint RCNN outperforms other methods in all metrics except for medium scale.
-Moreover, Keypoint RCNN showed the best detection results as shown in Table \ref{tb:robotmodelcomparisondetectionresults}, followed by NimbRo's Model and YOLO-pose.
-Lastly, NimbRo's Model is the most likely to be applied to real-time systems because it has the lowest inference time as shown in Table \ref{tb:inferencerobot}.
-However, since the in PLAY mode, we can do the pose estimation for both human and humanoid robot in the end, not in real-time.
-We decide to store the images first and do pose comparisons afterward. Since we are more concerned with a reliable model than a faster model so the Keypoint RCNN model is suitable for this study.
+Hasil pada test set dilaporkan dalam Tabel \ref{tb:result-on-test-set}. Dapat dilihat bahwa Keypoint RCNN unggul dalam semua metrik kecuali untuk skala sedang.
+Selain itu, Keypoint RCNN menunjukkan hasil deteksi terbaik seperti yang ditunjukkan dalam Tabel \ref{tb:robotmodelcomparisondetectionresults}, diikuti oleh Model NimbRo dan YOLO-pose.
+Terakhir, Model NimbRo kemungkinan paling cocok untuk diterapkan pada sistem \textit{real-time} karena memiliki waktu inferensi terendah seperti yang ditunjukkan dalam Tabel \ref{tb:inferencerobot}.
+Namun, karena dalam mode \textit{PLAY}, kita dapat melakukan estimasi pose baik untuk manusia maupun robot humanoid pada akhir dan bukan secara langsung.
+Kami memutuskan untuk menyimpan gambar terlebih dahulu dan melakukan perbandingan pose kemudian. Karena kami lebih mementingkan model dengan performa lebih baik dibangding model dengan waktu inferensi lebih cepat, maka model Keypoint RCNN cocok untuk penelitian ini.
 
 \begin{longtable}{|L{1.5cm}|c|c|c|c|c|c|c|c|c|c|}
-  \caption{Results on the test set.}
+  \caption{Hasil pada Test Set.}
   \label{tb:result-on-test-set}\\
   \hline
   \rowcolor[HTML]{C0C0C0}
@@ -110,7 +106,7 @@ We decide to store the images first and do pose comparisons afterward. Since we 
 
 \def\arraystretch{1.5}
 \begin{longtable}{|c|c|c|}
-  \caption{Inference Time Model Humanoid Robot.}
+  \caption{Waktu Inferensi Model Robot \textit{Humanoid}.}
   \label{tb:inferencerobot}\\
   \hline
   \rowcolor[HTML]{C0C0C0}
@@ -127,7 +123,7 @@ We decide to store the images first and do pose comparisons afterward. Since we 
 \newpage
 \def\arraystretch{0.5}
 \begin{longtable}{|c|c|c|}
-  \caption{Robot Model Comparison Detection Results.}
+  \caption{Perbandingan Hasil Deteksi Model untuk Robot.}
   \label{tb:robotmodelcomparisondetectionresults}\\
   \hline
   \rowcolor[HTML]{C0C0C0}
@@ -142,17 +138,18 @@ We decide to store the images first and do pose comparisons afterward. Since we 
 \end{longtable}
 
 
-\section{Human's Model Comparison}
+\section{Perbandingan Model Manusia}
 \label{sec:humanmodelcomparison}
-
-Based on \parencite{bazarevsky2020} that compares three different models: BlazePose Lite, BlazePose Full, and OpenPose (body only), they test the models on AR Dataset and Yoga Dataset. As an evaluation metric, they use the Percent of Correct Points with 20\% tolerance (PCK@0.2)
-(where assuming the point to be detected correctly if the 2D Euclidian error is smaller than 20\% of the corresponding person's torso size). BlazePose shows slightly worse performance than the OpenPose model on the AR dataset but BlazePose Full outperforms OpenPose on Yoga/Fitness use cases.
-Note that, in this study, we use BlazePose Full because by default the value of \emph{model complexity} argument is 1 in the \emph{mediapipe.solutions.pose.Pose} API class. Mediapipe provides 3 BlazePose models: BlazePose Lite, BlazePose Full, and BlazePose Heavy. Pose landmark accuracy as well as inference latency generally go up with the model complexity.
-Table \ref{tb:yoloandmediapipecomparison} shows the comparison between YOLO-pose and MediaPipe Pose and based on our needs to just detect one person, MediaPipe should be the best and also reliable choice.  
+  
+Berdasarkan penelitian yang dilakukan oleh \parencite{bazarevsky2020}, mereka membandingkan tiga model yang berbeda: BlazePose Lite, BlazePose Full, dan OpenPose (hanya bagian tubuh). Mereka menguji model-model tersebut pada AR Dataset dan Yoga Dataset.
+Sebagai metrik evaluasi, mereka menggunakan \textit{Percent of Correct Points} dengan toleransi 20\% (PCK@0.2) (di mana titik dianggap terdeteksi dengan benar jika kesalahan Euclidean 2D-nya lebih kecil dari 20\% dari ukuran torso orang yang bersangkutan).
+BlazePose menunjukkan performa yang sedikit lebih buruk dibandingkan model OpenPose pada dataset AR, tetapi BlazePose Full unggul dibandingkan OpenPose pada kasus penggunaan Yoga/Fitness.
+Perlu diperhatikan bahwa dalam penelitian ini, kami menggunakan BlazePose Full karena secara \textit{default} nilai argumen \emph{model complexity} adalah 1 dalam MediaPipe API. Mediapipe menyediakan tiga model BlazePose: BlazePose Lite, BlazePose Full, dan BlazePose Heavy. Akurasi landmark pose serta latensi inferensinya meningkat seiring dengan kompleksitas model.
+Tabel \ref{tb:yoloandmediapipecomparison} menunjukkan perbandingan antara YOLO-pose dan MediaPipe Pose, dan berdasarkan kebutuhan kami untuk hanya mendeteksi satu orang, MediaPipe seharusnya menjadi pilihan terbaik untuk penelitian ini.
 
 \def\arraystretch{1.5}
 \begin{longtable}{|L{3cm}|L{5cm}|L{5cm}|}
-  \caption{YOLO-pose and MediaPipe Pose Comparison.}
+  \caption{Perbandingan YOLO-pose dan MediaPipe Pose.}
   \label{tb:yoloandmediapipecomparison}\\
   \hline
   \rowcolor[HTML]{C0C0C0}
@@ -169,7 +166,7 @@ Table \ref{tb:yoloandmediapipecomparison} shows the comparison between YOLO-pose
 \end{longtable}
 
 \begin{longtable}{|c|c|c|}
-  \caption{Inference Time Model Human.}
+  \caption{Waktu Inferensi Model Manusia.}
   \label{tb:inferencehuman}\\
   \hline
   \rowcolor[HTML]{C0C0C0}
@@ -183,32 +180,32 @@ Table \ref{tb:yoloandmediapipecomparison} shows the comparison between YOLO-pose
   \hline
 \end{longtable}
 
-\section{Comparing the Suitability Between Humanoid Robot Pose and Human Pose Results}
+\section{Membandingkan Kecocokan Pose Antara Manusia dan Robot \textit{Humanoid}}
 \label{sec:comparingsuitabilityresults}
 
-By using the method in Section \ref{sec:comparing-keypoints}, we get the result from comparing the human pose and robot pose in percentage terms.
-We can see the two figures below, in Figure \ref{fig:comparingb} humans make movement that are more like robot than in Figure \ref{fig:comparinga}.
-Therefore, the comparison result of Figure \ref{fig:comparingb} is higher at 91\% than Figure \ref{fig:comparinga} with just 79\%.
-This indicates that the system can provide an accurate assessment between the poses of humans and robots.
-Furthermore, Figure \ref{fig:comparisongtandresult} shows the comparison between ground truth and detection results using Keypoint RCNN for every robot inside the new dataset
-(the left side is ground truth and the right side is detection results).
+Dengan menggunakan metode yang dijelaskan di Bagian \ref{sec:comparing-keypoints}, kami mendapatkan hasil dari perbandingan pose manusia dan pose robot dalam persentase.
+Dua gambar tersebut dapat dilihat di bawah ini, pada Gambar \ref{fig:comparingb}, manusia melakukan gerakan yang lebih mirip dengan robot daripada pada Gambar \ref{fig:comparinga}.
+Oleh karena itu, hasil perbandingan dari Gambar \ref{fig:comparingb} lebih tinggi yaitu 91\% dibandingkan Gambar \ref{fig:comparinga} yang hanya 79\%.
+Hal ini menunjukkan bahwa sistem dapat memberikan penilaian yang akurat antara pose manusia dan pose robot.
+Selanjutnya, Gambar \ref{fig:comparisongtandresult} menunjukkan perbandingan antara \textit{ground truth} dan hasil deteksi menggunakan Keypoint RCNN untuk setiap jenis robot dalam dataset yang baru
+(sisi kiri adalah ground truth dan sisi kanan adalah hasil deteksi).
 
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.45\textwidth}
       \centering
       \includegraphics[width=\textwidth]{gambar/human_10_result.jpg}
-      \caption{Human Image}
+      \caption{Citra Manusia}
       \label{fig:humanimagea}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.45\textwidth}
       \centering
       \includegraphics[width=\textwidth]{gambar/robot_6_result.jpg}
-      \caption{Robot Image}
+      \caption{Citra Robot}
       \label{fig:robotimagea}
   \end{subfigure}
-     \caption{Comparing Humanoid Robot Pose and Human Pose.}
+     \caption{Membandingkan Pose Robot \textit{Humanoid} dan Pose Manusia.}
      \label{fig:comparinga}
 \end{figure}
 
@@ -217,17 +214,17 @@ Furthermore, Figure \ref{fig:comparisongtandresult} shows the comparison between
   \begin{subfigure}[b]{0.45\textwidth}
       \centering
       \includegraphics[width=\textwidth]{gambar/human_6_result.jpg}
-      \caption{Human Image}
+      \caption{Citra Manusia}
       \label{fig:humanimageb}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.45\textwidth}
       \centering
       \includegraphics[width=\textwidth]{gambar/robot_6_result.jpg}
-      \caption{Robot Image}
+      \caption{Citra Robot}
       \label{fig:robotimageb}
   \end{subfigure}
-     \caption{Comparing Humanoid Robot Pose and Human Pose.}
+     \caption{Membandingkan Pose Robot \textit{Humanoid} dan Pose Manusia.}
      \label{fig:comparingb}
 \end{figure}
 
@@ -261,6 +258,6 @@ Furthermore, Figure \ref{fig:comparisongtandresult} shows the comparison between
   \includegraphics[width=.18\textwidth]{gambar/comp_with_gt/robot_12_res.png}
   \centering
   \captionsetup{justification=centering, margin=2cm}
-  \caption{Comparison Between Ground Truth and Detection Result on Every Type of Robot in Dataset}
+  \caption{Perbandingan Antara \textit{Ground Truth} dengan Hasil Deteksi pada Setiap Tipe Robot dalam Dataset}
   \label{fig:comparisongtandresult}
 \end{figure}

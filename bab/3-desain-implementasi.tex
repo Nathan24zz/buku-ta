@@ -194,7 +194,7 @@ Bagian ini akan langsung membahas estimasi pose untuk robot \textit{humanoid} ka
 Dikarenakan belum banyak model estimasi pose yang khusus untuk robot \textit{humanoid}, kita perlu melakukan pelatihan ulang model atau menggunakan \textit{transfer learning} dari model yang seharusnya ditujukan untuk mengestimasi pose manusia.
 Oleh karena itu, sub-bagian berikut akan menjelaskan langkah-langkah untuk melatih estimasi pose pada robot \textit{humanoid}.
 
-\subsection{Make New Dataset}
+\subsection{Membuat Dataset Baru}
 \label{subsec:make-new-dataset}
 
 Dataset baru ini merupakan kombinasi antara \textit{HumanoidRobotPose} dataset milik NimbRo dan dataset milik kami sendiri. 
@@ -211,7 +211,7 @@ Terkait dengan \textit{annotation tools}, terdapat banyak pilihan termasuk offli
 terjadi kegagalan (misalnya tidak dapat di-\textit{impor} atau dapat di-\textit{impor} tetapi hasil JSON pada bagian anotasi tidak ada). Oleh karena itu, kami memutuskan untuk menggunakan coco-annotator, ala anotasi gambar berbasis web yang dirancang untuk fleksibilitas dan efisiensi dalam memberikan label pada gambar untuk membuat data pelatihan.
 Terkait jumlah keypoints pada setiap robot, kami mengikuti dataset dari NimbRo. Terdapat enam \textit{keypoint} termasuk \textit{head}, \textit{trunk}, \textit{hands}, dan \textit{feet}. Kami tetap berpegang pada ide tersebut karena kami ingin mencoba performa dan waktu inferensi model dengan jumlah \textit{keypoint} yang lebih sedikit terlebih dahulu, dan jika hasilnya memuaskan, kami akan meningkatkan jumlah \textit{keypoint} di kemudian hari.
 
-\subsection{Training Pose Estimation Model for Humanoid Robot}
+\subsection{Melatih Estimasi Pose untuk Robot \textit{Humanoid}}
 \label{subsec:training-robot}
 
 Semua proses pelatihan dalam penelitian ini utamanya dilakukan pada komputer DGX-A100 dan ditulis dalam bahasa pemrograman Python. Konfigurasi spesifikasinya dijelaskan pada Tabel \ref{tb:dgxa100}.

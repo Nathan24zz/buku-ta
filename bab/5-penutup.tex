@@ -1,34 +1,36 @@
-\chapter{CONCLUSION}
+\chapter{PENUTUP}
 \label{chap:conclusion}
 
-In this chapter, the conclusions from the test results will be presented which will be the answer to the problems raised by this research.
-In addition, recommendations for actions that could be taken can advance this research in a further direction will also be presented.
+Dalam bab ini, kesimpulan dari hasil pengujian akan disajikan sebagai jawaban terhadap masalah yang diangkat dalam penelitian ini.
+Selain itu juga terdapat rekomendasi untuk tindakan yang dapat dilakukan dalam mengembangkan penelitian ini ke arah yang lebih lanjut.
 
-\section{Summary}
+\section{Kesimpulan}
 \label{sec:summary}
 
-Based on the results of the study, we can make the following conclusion:
+Berdasarkan hasil pengujian yang telah dilakukan, penulis dapat menyimpulkan beberapa hal sebagai berikut:
 
 \begin{enumerate}[nolistsep]
 
-  \item The creation of a new dataset has been completed by merging the HumanoidRobotPose dataset and Ichiro's poses dataset 
-        so the size of the robots become varies (adult, teen, and kid size). Furthermore, most of the additions (Ichiro's pose dataset) are one robot instance and
-        few are two instances per image with large scale (according to COCO dataset).
+  \item Pembuatan dataset baru telah diselesaikan dengan mengkombinasikan HumanoidRobotPose dataset dan dataset milik kita sendiri
+        sehingga ukuran robot dalam dataset menjadi bervariasi (\textit{adult, teen, kid size}).
+        Sebagian besar penambahan adalah data dengan konfigurasi 1 robot tiap gambar dan ukuran \textit{large} (sesuai dengan COCO Dataset)
+  \item RCNN Keypoint adalah metode yang mampu untuk mendeteksi pose robot \textit{humanoid} dengan 6 \textit{keypoint} karena mengungguli model lain,
+        dengan hasil AP sebesar 0.879 dan AR sebesar 0.925 pada test set (kecuali untuk AP \textit{medium}).
   \item RCNN Keypoint is capable and reliable for detecting humanoid robot with 6 keypoints because it outperforms other models in \emph{AP} and \emph{AR} results on the test set (except for AP medium)
         and shows the best detection results although it can not be performed in real-time even after converting to OpenVINO.
-  \item Cosine Similarity is a suitable method to compare the suitability between humanoid robot pose with human poses because the result is higher when
-        human make a movement that is more like a robot's motion and the result is lower when human make a movement that is less like robot's motion.
+  \item Kesamaan Kosinus merupakan metode yang cocok untuk membandingkan pose robot dan manusia karena hasilnya akan lebih tinggi
+        ketika manusia melakukan gerakan yang lebih menyerupai gerakan robot dan hasilnya akan lebih rendah ketika gerakan manusia tidak semirip dengan gerakan robot.
 
 \end{enumerate}
 
-\section{Suggestions And Future Work}
+\section{Saran}
 \label{chap:suggestionsandfuturework}
 
-For future development of "Mimicking Between Humanoid Robot and Human Based on Real-Time Pose Estimation" we have a few suggestions:
+Untuk pengembangan lebih lanjut pada penelitian mendatang, maka penulis memiliki saran sebagai berikut:
 
 \begin{enumerate}[nolistsep]
 
-  \item Add teen-sized humanoid robot to the dataset so that the types of robots without skin can be varied.
-  \item Try to add more keypoints on humanoid robot so the result of pose comparison more precise.
+  \item Menambahkan robot \textit{humanoid} dengan ukuran \textit{teen} ke dalam dataset sehingga tipe dari robot tanpa kulit dapat lebih beragam.
+  \item Mencoba menambah \textit{keypoint} pada robot \textit{humanoid} sehingga hasil perbandingan pose lebih akurat.
 
 \end{enumerate}
