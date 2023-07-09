@@ -7,15 +7,15 @@ Bab ini menjelaskan desain dan implementasi dari sistem yang telah dibuat.
 Seperti yang terlihat pada Gambar \ref{fig:block-diagram}, terdapat 2 diagram blok utama. Di bagian kiri adalah diagram blok untuk mode \textit{RECORD} dan diagram blok kanan adalah untuk mode \textit{PLAY}.
 Pada mode \textit{RECORD}, dimulai dengan citra manusia yang menjadi input ke estimasi pose untuk mendapatkan \textit{keypoint} manusia.
 Setelah itu, melakukan konversi sudut antara 2 \textit{keypoint} menjadi nilai servo sehingga dapat menggerakkan servo-servo robot untuk menirukan gerakan manusia serta menyimpannya untuk mode \textit{PLAY}.
-Di sisi lain, input pada mode \textit{PLAY} terdiri dari 2 yaitu citra manusia dan citra robot \textit{humanoid}.
-Kemudian, dilakukan estimasi pose untuk kedua citra tersebut. Sebelum melakukan normalisasi \textit{keypoint}, dilakukan pemilihan 6 \textit{keypoint} manusia berdasarkan \textit{keypoint} robot \textit{humanoid}.
-Terakhir, membandingkan \textit{keypoint} tersebut serta mendapatkan hasilnya.
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=1.2]{gambar/diagram-block-revisi.png}
+  \includegraphics[scale=1.1]{gambar/diagram-block.png}
   \caption{Blok Diagram dari Alur Pengerjaan.}
   \label{fig:block-diagram}
 \end{figure}
+Di sisi lain, input pada mode \textit{PLAY} terdiri dari 2 yaitu citra manusia dan citra robot \textit{humanoid}.
+Kemudian, dilakukan estimasi pose untuk kedua citra tersebut. Sebelum melakukan normalisasi \textit{keypoint}, dilakukan pemilihan 6 \textit{keypoint} manusia berdasarkan \textit{keypoint} robot \textit{humanoid}.
+Terakhir, membandingkan \textit{keypoint} tersebut serta mendapatkan hasilnya.
 Pada bagian berikutnya, setiap blok akan dijelaskan secara lebih rinci. Perlu diperhatikan bahwa mungkin ada penjelasan yang digabung jika kita menggunakan teknik yang sama untuk blok yang berbeda.
 Misalnya, blok yang mengirimkan citra manusia ke klien dan blok yang mengirimkan citra robot ke klien akan digabung menjadi hanya mengirimkan citra ke klien.
 
@@ -83,9 +83,6 @@ Kami juga memberlakukan batasan untuk setiap sudut untuk menjaga keamanan servo 
   \hline
   LShoulderRoll       & Left shoulder joint right and left    & -110 to 30  \\
   RShoulderRoll       & Right shoulder joint right and left   & -30 to 110 \\
-  \rowcolor[HTML]{C0C0C0}
-  \textbf{Joint Angle} & \textbf{Motion} & \textbf{Range (deg)} \\
-  \hline
   LElbowPitch           & Left Elbow joint front and back       & -120 to 10  \\
   RElbowPitch           & Left Elbow joint front and back       & -10 to 120  \\
   \hline
@@ -167,61 +164,60 @@ Terakhir, bagian \verb|"start_delay"| menandakan jeda sebelum tindakan dimulai, 
 \end{lstlisting}
 
 
-\section{Humanoid Robot Pose Estimation}
+\section{Estimasi Pose Robot \textit{Humanoid}}
 \label{sec:humanoid-robot-pose-estimation}
 
-This explanation is intended for the right block diagram from Figure \ref{fig:block-diagram} or we can also say as the RECORD mode. The difference between the PLAY and RECORD modes lies in the number of cameras used.
-So there will be two cameras, one camera to record human movement (located on the robot's head) and the other to record robot movement (located from the human side facing the robot), the distance between them approximately 1 - 1.5 meters, as shown in Figure \ref{fig:pose-comparison-side}.
-In PLAY mode, the server side sends two images so that we can know and adjust the position of humans and robots in the camera. Due to the large network delay when sending two 320x240 pixel images, when the START button is pressed,
-the server does not send the image to client again, the robot plays a series of moves stored in the previous JSON file by communicating via another ROS2 packages, while saving both images. After that, when the STOP button is pressed, the server starts to compare poses between them.
+Penjelasan ini ditujukan untuk blok diagram kanan dari Gambar \ref{fig:block-diagram} atau bisa juga disebut sebagai mode \textit{RECORD}. Perbedaan antara mode \textit{PLAY} dan \textit{RECORD} terletak pada jumlah kamera yang digunakan.
+Jadi akan ada dua kamera, satu kamera untuk merekam gerakan manusia (terletak di kepala robot) dan satu lagi untuk merekam gerakan robot (terletak dari sisi manusia menghadap robot), dengan jarak antara kamera sekitar 1 - 1,5 meter, seperti yang ditunjukkan pada Gambar \ref{fig:pose-comparison-side}.
+Pada mode \textit{PLAY}, server mengirimkan dua gambar agar kita dapat mengetahui dan menyesuaikan posisi manusia dan robot dalam kamera. Karena adanya \textit{delay} jaringan yang besar saat mengirimkan dua gambar berukuran 320x240 piksel sekaligus, ketika tombol \textit{START} ditekan,
+server tidak mengirimkan gambar ke klien lagi, robot melakukan serangkaian gerakan yang disimpan dalam file JSON sebelumnya dengan berkomunikasi melalui \textit{package} ROS2 lainnya, sambil menyimpan kedua gambar tersebut. Setelah itu, ketika tombol \textit{STOP} ditekan, server akan membandingkan pose antara keduanya.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.3]{gambar/pose-comparison.jpeg}
-  \caption{Pose Comparison from Side.}
+  \caption{Membandingkan Pose dari Sisi Samping.}
   \label{fig:pose-comparison-side}
 \end{figure}
 
-In order to move the servo robot according to the data stored in JSON, a package called \emph{akushon} is needed. \emph{Akushon} is a package related to motion robots. This package name comes from a Japanese word that means action.
-Like Section \ref{sec:move-robot-servo}, every package has a node with the package's name and communicates with each other through a topic as shown in Figure \ref{fig:relation-node-play-mode}. There are 3 topics in PLAY mode: \verb|joint/set_joints|, \verb|joint/current_joints| that is used between \verb|akushon_node| and \verb|tachimawari_node| also \verb|motion_matching_node| and \verb|tachimawari_node|,
-and \verb|action/run_action| that is used between \verb|akushon_node| and \verb|mo| \verb|tion_matching_node|.
-The explanation about how to move the robot's servos and get the current value of servos through topic \verb|joint/set_joints| and \verb|joint/current_joints| is located in Section \ref{sec:move-robot-servo}.
-Meanwhile, topic \verb|action/run_action| is used to send pose data in a JSON file from \emph{motion matching} to \emph{akushon} package. In \emph{akushon} package there is an interpolator that loops through every pose in the JSON file, get every value of the servo, and send it to \emph{tachimawari} package.
+Untuk dapat menggerakkan servo-servo robot sesuai dengan data yang tersimpan dalam JSON, diperlukannya sebuah \textit{package} yang disebut \emph{akushon}. \emph{Akushon} adalah paket yang terkait dengan gerakan robot. Asal usul nama paket ini berasal dari kata bahasa Jepang yang berarti \textit{action}.
+Seperti yang dijelaskan pada Bagian \ref{sec:move-robot-servo}, setiap paket memiliki sebuah \textit{node} dengan nama \textit{package}-nya sendiri dan berkomunikasi satu sama lain melalui topik, seperti yang ditunjukkan pada Gambar \ref{fig:relation-node-play-mode}. Terdapat 3 topik pada mode \textit{PLAY}: topik \verb|joint/set_joints| dan topik \verb|joint/current_joints| yang digunakan oleh \verb|akushon_node|, \verb|tachimawari_node|, dan \verb|motion_matching_node|,
+serta topik \verb|action/run_action| yang digunakan antara \verb|aku| \verb|shon_node| dan \verb|motion_matching_node|.
+Penjelasan mengenai bagaimana menggerakkan servo-servo robot dan mendapatkan nilai servo saat ini melalui topik \verb|joint/set_joints| dan \verb|joint/current_joints| terdapat pada Bagian \ref{sec:move-robot-servo}.
+Sementara itu, topik \verb|action/run_action| digunakan untuk mengirimkan data pose dalam file JSON dari \textit{package} \emph{motion matching} ke \textit{package} \emph{akushon}. Pada \textit{package} \emph{akushon}, terdapat sebuah \textit{interpolator} yang melakukan iterasi pada setiap pose dalam file JSON, memperoleh setiap nilai servo, dan mengirimkannya ke \textit{package} \emph{tachimawari}.
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.64]{gambar/rqt_akushon.png}
-  \caption{Relationship Between Nodes in PLAY Mode.}
+  \caption{Hubungan Antar \textit{Node} pada Mode \textit{PLAY}.}
   \label{fig:relation-node-play-mode}
 \end{figure}
 
-This section immediately begins with the estimation pose for humanoid robot because the explanation regarding the previous block has been explained in the previous section.
-Since there are not many pose estimation models for humanoid robots out there yet, we need to retrain them or use transfer learning from the model that supposes to estimate human pose.
-Therefore, the following subsections will explain about the steps for training pose estimation on humanoid robot.
+Bagian ini akan langsung membahas estimasi pose untuk robot \textit{humanoid} karena penjelasan mengenai blok sebelumnya telah dijelaskan pada bagian sebelumnya.
+Dikarenakan belum banyak model estimasi pose yang khusus untuk robot \textit{humanoid}, kita perlu melakukan pelatihan ulang model atau menggunakan \textit{transfer learning} dari model yang seharusnya ditujukan untuk mengestimasi pose manusia.
+Oleh karena itu, sub-bagian berikut akan menjelaskan langkah-langkah untuk melatih estimasi pose pada robot \textit{humanoid}.
 
 \subsection{Make New Dataset}
 \label{subsec:make-new-dataset}
 
-This new dataset is a merge of NimbRo's Humanoid Robot Pose dataset and Ichiro's dataset. NimbRo's dataset contains both single and multiple robots to
-simulate RoboCup's real conditions. They also gathered from RoboCup Humanoid League YouTube videos, their own internal videos, and ROS bags. 
-Overall, their dataset has over 1.5k images that come from 23 videos with around 2.3k robot instances. These images include teen and adult-sized robots and contain more than ten different robot types \parencite{amini2021}.
-However, the robots in Ichiro's dataset are only kid-sized and come in single or maximum two-robot configurations. The images in our dataset come from videos that are taken in our lab. 
-Then we split up those videos into multiple images and we pick not blurred videos.
-Before merging, we need to fix NimbRo's dataset format first. This is because after we visualized some of their data, we found that the bounding boxes in \emph{annotations} part were misplaced (the width and height were swapped).
-After we refine their dataset format and merge them with our dataset, the newly created dataset has approximately 2.1k images.
-About 20 percent of the dataset was used for scoring and validating.
+Dataset baru ini merupakan kombinasi antara \textit{HumanoidRobotPose} dataset milik NimbRo dan dataset milik kami sendiri. 
+Dataset dari NimbRo mencakup robot tunggal dan multi robot dalam 1 gambar dan diambil dalam kondisi nyata \textit{RoboCup}. 
+Mereka mengumpulkan data dari video YouTube Liga \textit{Humanoid RoboCup}, video internal mereka sendiri, dan file \textit{ROS bags}. 
+Secara keseluruhan, dataset mereka memiliki lebih dari 1.5 ribu gambar yang berasal dari 23 video dengan sekitar 2.3 ribu jumlah robot. 
+Gambar-gambar ini mencakup robot berukuran \textit{teen} dan \textit{adult} serta mengandung lebih dari sepuluh jenis robot yang berbeda \parencite{amini2021}.
+Namun, robot-robot dalam dataset kami hanya berukuran \textit{kid} dan hadir dalam konfigurasi tunggal atau maksimal dua robot. Gambar-gambar dalam dataset kami berasal dari video yang diambil di laboratorium kami. Lalu video-video tersebut dijadikan beberapa gambar dan dipilih video yang tidak buram.
+Sebelum dilakukan penggabungan, kami perlu memperbaiki format dataset dari NimbRo terlebih dahulu. Hal ini karena setelah kami memvisualisasikan beberapa data mereka, kami menemukan bahwa \textit{bounding box} pada bagian "\textit{annotations}" tertukar (lebar dan tingginya tertukar).
+Setelah kami memperbaiki format dataset mereka dan menggabungkannya dengan dataset kami, dataset yang baru terbentuk memiliki sekitar 2.1 ribu gambar.
+Sekitar 20 persen dari dataset tersebut digunakan untuk skoring dan validasi.
 
-When it comes to annotation tools, there are a lot of choices out there including offline and online tools. We have tried some of them like Dataloop, V7labs, or Supervisely which is recommended by NimbRo.
-However, when we tried to export the dataset into COCO format, it failed (e.g. can not import it or it can be imported but the JSON result in the annotation section is none). So, we decided to use a coco-annotator,
-a web-based image annotation tool designed for versatility and efficiently labeling images to create training data. Regarding the number of keypoints in each robot, we followed NimbRo's dataset.
-There are six keypoints including head, trunk, hands, and feet. We stick to that idea because we want to try the model's performance and inference time with fewer keypoints first and if we are confident enough, we will increase the number of keypoints later.
+Terkait dengan \textit{annotation tools}, terdapat banyak pilihan termasuk offline dan online. Kami telah mencoba beberapa di antaranya seperti Dataloop, V7labs, atau Supervisely yang direkomendasikan oleh NimbRo. Namun, ketika kami mencoba untuk meng-\textit{export} dataset ke dalam format COCO,
+terjadi kegagalan (misalnya tidak dapat di-\textit{impor} atau dapat di-\textit{impor} tetapi hasil JSON pada bagian anotasi tidak ada). Oleh karena itu, kami memutuskan untuk menggunakan coco-annotator, ala anotasi gambar berbasis web yang dirancang untuk fleksibilitas dan efisiensi dalam memberikan label pada gambar untuk membuat data pelatihan.
+Terkait jumlah keypoints pada setiap robot, kami mengikuti dataset dari NimbRo. Terdapat enam \textit{keypoint} termasuk \textit{head}, \textit{trunk}, \textit{hands}, dan \textit{feet}. Kami tetap berpegang pada ide tersebut karena kami ingin mencoba performa dan waktu inferensi model dengan jumlah \textit{keypoint} yang lebih sedikit terlebih dahulu, dan jika hasilnya memuaskan, kami akan meningkatkan jumlah \textit{keypoint} di kemudian hari.
 
 \subsection{Training Pose Estimation Model for Humanoid Robot}
 \label{subsec:training-robot}
 
-All of the training processes in this study were primarily conducted on a DGX-A100 server computer and written in the Python programing language. The specific configuration explains in Table \ref{tb:dgxa100}.
-From this base specification, we are allocated a Jupiter notebook container with
-python and many libraries preinstalled with following allocated resources explained in Table \ref{tb:allocatedcontainer}.
+Semua proses pelatihan dalam penelitian ini utamanya dilakukan pada komputer DGX-A100 dan ditulis dalam bahasa pemrograman Python. Konfigurasi spesifikasinya dijelaskan pada Tabel \ref{tb:dgxa100}.
+Dari spesifikasi dasar ini, kami dialokasikan suatu kontainer \textit{Jupyter notebook} dengan Python dan banyak \textit{library} yang telah terpasang sebelumnya dengan alokasi sumber daya yang dijelaskan pada Tabel \ref{tb:allocatedcontainer}
 \begin{longtable}{|c|c|}
-  \caption{DGX-A100 Specification.}
+  \caption{Spesifikasi DGX-A100.}
   \label{tb:dgxa100}\\
   \hline
   CPU     & Dual AMD Rome 7742, 128 cores total @ 2.25 GHz \\
@@ -235,7 +231,7 @@ python and many libraries preinstalled with following allocated resources explai
 \end{longtable}
 
 \begin{longtable}{|c|c|}
-  \caption{Allocated container specification.}
+  \caption{Spesifikasi Kontainer yang Dialokasikan.}
   \label{tb:allocatedcontainer}\\
   \hline
   GPU     & 1/8 NVIDIA A100 GPU \\
@@ -248,99 +244,99 @@ python and many libraries preinstalled with following allocated resources explai
   \hline
 \end{longtable}
 
-\subsubsection{NimbRo's Model}
+\subsubsection{Model NimbRo}
 \label{subsubsec:training-nimbro-model}
 
-The hyperparameters that are used to train NimbRo's model followed the description in their paper.
-This model is trained using the AdamW optimizer with a learning rate of 10\textsuperscript{-4},
-batch size 16, and weight decay of 10\textsuperscript{-4} for the total 200 epochs.
-Note that the encoder is initialized by pre-trained ResNet weights on ImageNet.
-We also use data augmentation that includes random scaling and random translation during training \parencite{amini2021}.
-We do not use random horizontal flip and random rotation because in our case it will make the training result worse.
+Hyperparameter yang digunakan untuk melatih model NimbRo mengikuti deskripsi dalam makalah mereka.
+Model ini dilatih menggunakan \textit{optimizer} AdamW dengan \textit{learning rate} 10\textsuperscript{-4},
+ukuran batch 16, dan \textit{weight decay} 10\textsuperscript{-4} untuk total 200 epoch.
+Perlu diperhatikan bahwa encoder diinisialisasi dengan ResNet yang telah dilatih sebelumnya pada dataset ImageNet.
+Kami juga melakukan augmentasi data yang mencakup \textit{scaling} dan translasi selama pelatihan \parencite{amini2021}.
+\textit{Flip horizontal} acak dan rotasi tidak digunakan karena dalam kasus kami, hal tersebut akan membuat hasil pelatihan menjadi lebih buruk.
 
-The main program for training is already made by them named \emph{main.py} using PyTorch framework, we just need to run it on Jupyter Notebook file or Terminal and adjust the arguments for our needs.
-In their script, there is an argument name \verb|config| which it is referred to a file where we store all the hyperparameters, number of epochs, dataset name for training and testing, and many others. 
-Another argument tells us about a directory path where we save training results and the dataset takes place.
+Program utama untuk pelatihan telah disediakan oleh mereka pada file \emph{main.py} menggunakan \textit{framework} PyTorch, kita hanya perlu menjalankannya pada Jupyter Notebook atau Terminal dan menyesuaikan argumen sesuai kebutuhan kita.
+Dalam skrip mereka, terdapat argumen dengan nama \verb|config| yang merujuk pada file di mana kami menyimpan semua hyperparameter, jumlah epoch, nama dataset untuk pelatihan dan pengujian, dan lain-lain.
+Argumen lainnya memberitahu kita tentang tempat menyimpan hasil pelatihan dan lokasi dari dataset.
+\newpage
 \lstinputlisting[
   language={},
-  caption={Example YAML file config for NimbRo's Training.},
+  caption={Contoh \textit{config} file YAML untuk pelatihan Model NimbRo.},
   label={lst:confignimbro}
 ]{files/train_nimbro.yaml}
-File \ref{lst:confignimbro} is an example of YAML configuration file for NimbRo Training. This is not a complete version, but we included parts that were changed frequently during the training process.
-The "SEED" is set to 42, ensuring reproducibility of random processes. The "DEVICE" is specified as "cuda", indicating the utilization of a GPU for computation.
-\verb|"BATCH_SIZE"| is set to 16, meaning that 16 data samples will be processed together in each training iteration. If we make \emph{batch size} value larger, it requires more memory to store the input data, intermediate activations, and gradients during training.
-If the available memory is limited, increasing the batch size beyond the memory capacity may lead to out-of-memory errors or cause the training process to slow down.
-However, larger batch sizes can speed up the training process as more samples are processed in parallel. It also effect the generalization capability of the model.
-Smaller batch sizes tend to provide more stochasticity during training, which can act as a form of regularization and help prevent overfitting. In contrast, larger batch sizes may result in a smoother optimization process, potentially leading to faster convergence but with a slightly increased risk of overfitting.
-The \verb|"NUM_WORKERS"| is set to 2, indicating that two worker processes will be used to load and preprocess the data.
+File \ref{lst:confignimbro} merupakan contoh \textit{config} file YAML untuk pelatihan NimbRo. Ini bukan merupakan versi lengkap, tetapi disitu telah dicantumkan bagian-bagian yang sering diubah selama proses pelatihan.
+\verb|"SEED"| diatur menjadi 42, memastikan terjadinya proses acak. \verb|"DEVICE"| ditentukan sebagai \textit{"cuda"}, menandakan penggunaan GPU untuk komputasi.
+\verb|"BATCH_SIZE"| diatur menjadi 16, yang berarti 16 sampel data akan diproses bersamaan dalam setiap iterasi pelatihan. Jika kita membuat nilai \emph{batch size} lebih besar, diperlukan juga lebih banyak memori untuk menyimpan data input dan gradien selama pelatihan.
+Jika memori yang tersedia terbatas, meningkatkan ukuran \textit{batch} melebihi kapasitas memori dapat menyebabkan \textit{error out-of-memory} atau memperlambat proses pelatihan.
+Namun, ukuran batch yang lebih besar dapat mempercepat proses pelatihan karena lebih banyak sampel diproses secara paralel. Hal ini juga mempengaruhi kemampuan generalisasi dari model.
+Ukuran batch yang lebih kecil cenderung mempunyai lebih banyak \textit{stochasticity} selama pelatihan, yang dapat berfungsi sebagai bentuk regularisasi dan membantu mencegah overfitting. Sebaliknya, ukuran batch yang lebih besar dapat menghasilkan proses optimasi yang lebih halus, dengan potensi konvergensi lebih cepat tetapi risiko overfitting sedikit meningkat.
+\verb|"NUM_WORKERS"| bernilai 2, menunjukkan bahwa dua proses pekerja akan digunakan untuk memuat dan memproses data.
 
-The training process will run for 200 epochs as specified by \verb|"NUM_EPOCHS"|. When training for more epochs, the model undergoes more iterations and updates, allowing it to refine its learned representations and adjust its parameters based on the training data.
-This can lead to improved model performance as the model converges towards an optimal solution and achieves higher accuracy on both the training and validation data. However, it is important to be cautious of the risk of overfitting. Overfitting occurs when the model becomes too specialized to the training data and fails to generalize well to unseen data.
-Increasing the number of epochs without proper regularization techniques can increase this risk. The model may start to memorize the training data instead of learning generalizable patterns, resulting in poor performance on new data. Additionally, training for a greater number of epochs requires more time.
-The \verb|"PRINT_FREQ"| is set to 100, meaning that training progress and relevant information will be printed or displayed every 100 iterations.
+Proses pelatihan akan berjalan selama 200 epoch sesuai dengan \verb|"NUM_EPOCHS"| yang ditentukan. Semakin banyak epoch, model akan mengalami lebih banyak iterasi dan pembaruan, memungkinkannya untuk menyempurnakan representasi yang dipelajari dan menyesuaikan parameter berdasarkan data pelatihan.
+Hal ini dapat menghasilkan peningkatan performa model karena model mendekati solusi optimal dan mencapai akurasi yang lebih tinggi baik pada data pelatihan maupun validasi. Namun, juga perlu berhati-hati terhadap risiko \textit{overfitting}. \textit{Overfitting} terjadi ketika model menjadi terlalu khusus pada data pelatihan dan gagal untuk menggeneralisasi dengan baik pada data yang belum pernah dilihat sebelumnya.
+Meningkatkan jumlah epoch tanpa teknik regularisasi yang tepat dapat meningkatkan risiko ini. Model dapat mulai menghafal data pelatihan daripada belajar pola yang digeneralisasi sehingga dapat menghasilkan performa yang buruk pada data baru. Selain itu, melatih untuk jumlah epoch yang lebih besar membutuhkan waktu yang lebih lama.
+\verb|"PRINT_FREQ"| bernilai 100, artinya informasi yang relevan dengan proses pelatihan akan dicetak setiap 100 iterasi.
 
-The "DATASET" section contains settings related to the dataset used for training.
-The \verb|"DATASET.TRAIN"| specifies the name or identifier of the training dataset folder, and \verb|"DATASET| \verb|.TEST"| indicates the name of the validation dataset folder. The \verb|"NUM_KEYPOINTS"| is set to 6, denoting the number of keypoints or landmarks in the dataset, while \verb|"NUM_LIMBS"| is set to 5, representing the number of limbs or connections between keypoints.
-The \verb|"MAX_NUM_| \verb|DETECTIONS"| is set to 10, indicating the maximum number of robots in the dataset. The "SIGMA" parameter is set to 2.0, which is used in generating heatmaps. For augmentation, The "FLIP" is set to 0.0, meaning there will be no horizontal flipping of the input data. The "TRANSLATE" is set to 0.4, allowing the data to be translated by up to 40\% of its size.
-The "SCALE" parameter represents a range of scaling applied to the input data, with a minimum scale of 0.5 and a maximum scale of 1.5. The "ROTATION" is set to 0, indicating no rotation will be applied to the input data. Additionally, the \verb|"INPUT_SIZE"| is set to [384, 384], representing the desired input size of the model, while the \verb|"OUTPUT_SIZE"| is set to [192, 192], indicating the desired output size.
+Bagian \verb|"DATASET"| berisi pengaturan terkait dataset yang digunakan untuk pelatihan.
+\verb|"DA| \verb|TASET.TRAIN"| menentukan nama folder untuk dataset pelatihan, dan \verb|"DATASET.TEST"| menunjukkan nama folder untuk dataset validasi. \verb|"NUM_KEYPOINTS"| diatur menjadi 6, yang menandakan jumlah \textit{keypoint} atau landmark dalam dataset, sementara \verb|"NUM_LIMBS"| diatur menjadi 5, mewakili jumlah hubungan antara keypoints (\textit{limb}).
+\verb|"MAX_NUM_DETECTIONS"| diatur menjadi 10, menunjukkan jumlah maksimum robot dalam satu gambar. Parameter \verb|"SIGMA"| diatur menjadi 2.0, yang digunakan dalam pembentukan \textit{heatmap}. Untuk augmentasi, \verb|"FLIP"| diatur menjadi 0.0, yang berarti tidak akan ada \textit{horizontal flipping} pada data input. \verb|"TRANSLATE"| diatur menjadi 0.4, memungkinkan data untuk ditranslasi hingga 40\% dari ukuran aslinya.
+Parameter \verb|"SCALE"| mewakili rentang \textit{scaling} yang diterapkan pada data input, dengan skala minimum 0.5 dan skala maksimum 1.5. \verb|"ROTATION"| diatur menjadi 0, menunjukkan bahwa tidak akan ada rotasi yang diterapkan. Selain itu, \verb|"INPUT_SIZE"| diatur menjadi [384, 384], mewakili ukuran input yang diinginkan dari model, sedangkan \verb|"OUTPUT_SIZE"| diatur menjadi [192, 192], menunjukkan ukuran output model.
 
-For computing loss, they use mean square error (MSE) between the predicted heatmaps and the ground truth heatmaps for both keypoints and the limbs.
-This loss function directly compare the predicted coordinates of the keypoints with the ground truth coordinates by averaging the squared difference between the predicted and target coordinates.
-Finally, the total loss used to train the network is the sum of the keypoint loss and the limb loss \parencite{amini2021}.
+Untuk menghitung \textit{loss}, mereka menggunakan \textit{mean square error} (MSE) antara \textit{heatmap} yang diprediksi dan \textit{heatmap ground truth} baik untuk \textit{keypoints} dan \textit{limb}.
+Fungsi loss ini secara langsung membandingkan prediksi koordinat \textit{keypoint} dengan koordinat \textit{ground truth} dengan cara mengambil rata-rata selisih kuadrat antara koordinat yang diprediksi dan koordinat target.
+Akhirnya, total \textit{loss} adalah jumlah dari \textit{loss keypoint} dan \textit{loss limb} \parencite{amini2021}.
 
 \subsubsection{YOLO-pose}
 \label{subsubsec:training-yolo-pose}
 
-Before we jumped into training process, we must change format of our newly dataset from COCO to YOLO. Differ from COCO format, YOLO format gives keypoint confidence or visibility flag 2 for either visible or occluded keypoint
-and if it is outside the field of view, the value is set to zero. However, COCO format defines visibility flag as v=0: not labeled, v=1: labeled but not visible, and v=2: labeled and visible. So, we change the definition of
-v=1 and v=2 become just v=2 in YOLO format and keep v=0. As seen in Pseudocode \ref{lst:change-keypoint-format}, where we make a function called \verb|change_keypoint_format| which has 2 input arguments and return new keypoints with YOLO format. 
-Beside keypoint format differences, bounding-box format between them is also different. COCO defines a bounding-box as follow: x (top left), y (top left), width, and height. On the other hand,
-bounding-box format in YOLO is: x (center), y (center), width, and height also all of them need to be normalized. Thus, we need to add 1/2 width to x, 1/2 height to y like in Pseudocode \ref{lst:change-bbox-format}, and normalize them by multiplying new x and y with 1/width and 1/height respectively. 
-
+Sebelum memulai proses pelatihan, kita harus mengubah format dataset yang baru dari COCO ke YOLO. Berbeda dengan format COCO, format YOLO memberikan nilai \textit{visibility flag} keypoint 2 jika \textit{keypoint} yang terlihat atau terhalang, tetapi jika \textit{keypoint} berada di luar bidang pandang, nilainya menjadi nol.
+Namun, format COCO mendefinisikan \textit{visibility flag} sebagai v=0: tidak dilabeli, v=1: dilabeli tetapi tidak terlihat, dan v=2: dilabeli dan terlihat. Jadi, kita mengubah definisi v=1 dan v=2 menjadi v=2 dalam format YOLO dan mempertahankan v=0. Seperti yang terlihat dalam Pseudocode \ref{lst:change-keypoint-format}, di mana kita membuat fungsi bernama \verb|change_keypoint_format| yang memiliki 2 argumen masukan dan fungsi tersebut mengembalikan \textit{keypoint} baru dengan format YOLO.
+Selain perbedaan format \textit{keypoint}, format \textit{bounding-box} diantara keduanya juga berbeda. COCO mendefinisikan \textit{bounding-box} sebagai berikut: x (kiri atas), y (kiri atas), lebar, dan tinggi. Di sisi lain, format \textit{bounding-box} dalam YOLO adalah: x (pusat), y (pusat), lebar, dan tinggi, dan semuanya perlu dinormalisasi.
+Oleh karena itu, kita perlu menambahkan 1/2 lebar ke x, 1/2 tinggi ke y seperti yang terlihat dalam Pseudocode \ref{lst:change-bbox-format} dan menormalisasinya melalui perkalian x dan y yang baru dengan 1/lebar dan 1/tinggi secara berturut-turut.
+\newpage
 \lstinputlisting[
   language={},
-  caption={Change Keypoint Format From COCO to YOLO.},
+  caption={Mengganti Format \textit{Keypoint} dari COCO ke YOLO.},
   label={lst:change-keypoint-format}
 ]{program/change-keypoint.txt}
 
 \lstinputlisting[
   language={},
-  caption={Change Bounding Box Format From COCO to YOLO.},
+  caption={Mengganti Format \textit{Bounding Box} dari COCO ke YOLO.},
   label={lst:change-bbox-format}
 ]{program/bbox-norm.txt}
 
-The hyperparameters to train YOLO-pose followed the description in their GitHub named \emph{hyp.pose.yaml}.
-We use SGD optimizer with a cosine scheduler. The base learning rate is set to 10\textsuperscript{-2}, batch size 16,
-and weight decay of 5\textsuperscript{-4} for total 100 epochs. There are also data augmentation like random scale ([0.5, 1.5]),
-random translation [-10, 10], mosaic augmentation with probability 1, and various color augmentations.
-It is the same with previous section, the main program for training has been provided using PyTorch framework too, but the program is intended for humans with 17 keypoints.
-If we run it directly with our dataset with 6 keypoints, an error will be raised. Therefore, a little bit of code needs to be changed to make the training process can be run.
+Hyperparameter untuk melatih YOLO-pose mengikuti deskripsi yang ada pada GitHub mereka dengan file \emph{hyp.pose.yaml}.
+Kami menggunakan \textit{optimizer} SGD dengan \textit{cosine scheduler}. \textit{Learning rate} diatur menjadi 10\textsuperscript{-2}, ukuran batch 16,
+dan \textit{weight decay} sebesar 5\textsuperscript{-4} untuk total 100 epoch. Terdapat juga augmentasi data seperti augmentasi skala ([0.5, 1.5]),
+translasi [-10, 10], augmentasi mozaik dengan probabilitas 1, dan berbagai augmentasi warna.
+Seperti pada bagian sebelumnya, program utama untuk pelatihan telah disediakan menggunakan \textit{framework} PyTorch juga, tetapi program ini ditujukan untuk manusia dengan 17 \textit{keypoint}.
+Jika menjalankannya langsung dengan dataset kami yang memiliki 6 keypoints, akan muncul \textit{error}. Oleh karena itu, kode perlu diubah sedikit agar proses pelatihan dapat berjalan.
 
-The overall loss for YOLO-pose is a sum of loss of classification, bounding box, keypoints, and keypoints confidence with its threshold as seen in Equation \ref{eq:overall-loss-yolo}.
-The hyper-params that are chosen to balance between losses at different scales are $\lambda_{cls} = 0.5$, $\lambda_{box} = 0.05$, $\lambda_{kpts} = 0.1$, and $\lambda_{kpts_conf} = 0.5$.
-Note that, Loss at location (\emph{i,j}) is valid for k\textsuperscript{th} anchor at scale s if a ground truth bounding box is matched against that anchor \parencite{maji2022yolopose}.
+\textit{Loss} keseluruhan untuk YOLO-pose adalah jumlah dari \textit{classification loss}, \textit{bounding box loss}, \textit{keypoint loss}, dan \textit{keypoints confidence loss} dengan batasan tertentu seperti yang terlihat dalam Persamaan \ref{eq:overall-loss-yolo}.
+Hyperparameter yang dipilih untuk menjaga keseimbangan antara \textit{loss} pada skala yang berbeda adalah $\lambda_{cls} = 0.5$, $\lambda_{box} = 0.05$, $\lambda_{kpts} = 0.1$, dan $\lambda_{kpts_conf} = 0.5$.
+Perlu dicatat bahwa, \textit{loss} pada lokasi (\emph{i,j}) berlaku untuk anchor k\textsuperscript{th} pada skala s jika \textit{ground truth bounding box} cocok dengan anchor tersebut \parencite{maji2022yolopose}.
 \begin{equation}
   \label{eq:overall-loss-yolo}
   \mathcal{L}_{total} = \sum_{s,i,j,k} (\lambda_{cls}\mathcal{L}_{cls} + \lambda_{box}\mathcal{L}_{box} + \lambda_{kpts}\mathcal{L}_{kpts} + \lambda_{kpts_conf}\mathcal{L}_{kpts_conf})
 \end{equation}
 
-Instead of using distance-based loss for box detection, the majority of modern object detectors optimize advanced IoU loss variants like GIoU, DIoU, or CIoU loss since these losses are scale-invariant and directly optimize the evaluation measure itself.
-They use CIoU loss for bounding box supervision. For a ground truth bounding box that is matched with k\textsuperscript{th} anchor at location (\emph{i,j}) and scale s, loss defined as follows \parencite{maji2022yolopose}.
+Daripada menggunakan \textit{distance-based loss} untuk deteksi \textit{bounding box}, sebagian besar detektor objek modern mengoptimalkan variasi IoU \textit{loss} seperti GIoU, DIoU, atau CIoU karena \textit{loss} ini terpengaruh terhadap skala dan secara langsung mengoptimalkan ukuran evaluasi itu sendiri.
+Mereka menggunakan CIoU \textit{loss} untuk \textit{bounding box}. Untuk \textit{ground truth bounding box} yang sesuai dengan anchor ke-k di lokasi (i, j) dan skala s, \textit{loss} didefinisikan sebagai berikut \parencite{maji2022yolopose}.
 \begin{equation}
   \label{eq:bbox-loss-yolo}
   \mathcal{L}_{box}(s,i,j,k) = (1 - CIoU(Box_{gt}^{s,i,j,k}, Box_{pred}^{s,i,j,k}))
 \end{equation}
 
-Conventionally, heat-map-based bottom-up approaches use L1 loss to detect keypoints. However, L1 loss may not necessarily be suitable to obtain optimal OKS for evaluation metrics because it does not take into consideration the scale of an object or the type of a keypoint.
-Therefore they use OKS loss, they extend the idea of  IOU loss from box to keypoints. OKS is treated as IOU in case of keypoints. OKS is computed for each keypoint separately and then summed to give the final OKS loss or keypoint IOU loss like Equation \ref{eq:keypoint-loss-yolo},
-where $\delta(V_n > 0) =$ visibility flag for each keypoint \parencite{maji2022yolopose}.
+Secara konvensional, pendekatan bottom-up berbasis \textit{heatmap} menggunakan \textit{loss} L1 untuk mendeteksi \textit{keypoints}. Namun, \textit{loss} L1 mungkin tidak selalu cocok untuk mendapatkan OKS optimal untuk metrik evaluasi karena tidak mempertimbangkan skala objek atau jenis \textit{keypoints}.
+Oleh karena itu, mereka menggunakan \textit{loss} OKS, mereka memperluas ide \textit{loss} IOU dari \textit{bounding box} menjadi \textit{keypoints}. OKS diperlakukan sebagai IOU dalam hal \textit{keypoints}. OKS dihitung untuk setiap \textit{keypoints} secara terpisah dan kemudian dijumlahkan untuk memberikan \textit{loss} OKS akhir
+atau \textit{loss} IOU \textit{keypoints} seperti Persamaan \ref{eq:keypoint-loss-yolo}, di mana $\delta(V_n > 0)$ = \textit{visibility flag} untuk setiap \textit{keypoints} \parencite{maji2022yolopose}.
 \begin{equation}
   \label{eq:keypoint-loss-yolo}
   \mathcal{L}_{kpts}(s,i,j,k) = 1 - \frac{\sum_{n=1}^{N_{kpts}} exp\left( \frac{d_n^2}{2s^2k_n^2} \right) \delta(V_n > 0) }{\sum_{n=1}^{N_{kpts}} \delta(V_n > 0)}
 \end{equation}
 
-In order to get the loss of keypoint confidence, they use Binary Cross-Entropy Loss. This parameter shows whether a keypoint is present for that object or not. Here, visibility flags for keypoints are used as ground truth.
-$p_{kpts}^n=$ predicted confidence for n\textsuperscript{th} keypoint \parencite{maji2022yolopose}.
+Untuk mendapatkan \textit{loss} dari \textit{keypoint confidence}, mereka menggunakan \textit{Loss} Binary Cross-Entropy. Parameter ini menunjukkan apakah sebuah \textit{keypoint confidence} ada atau tidak untuk objek tersebut. Di sini, \textit{visibility flags} untuk \textit{keypoint} digunakan sebagai \textit{ground truth}.
+$p_{kpts}^n$ = prediksi \textit{confidence} untuk \textit{keypoint} n\textsuperscript{th} \parencite{maji2022yolopose}.
 \begin{equation}
   \label{eq:keypoint-confident-loss-yolo}
   \mathcal{L}_{kpts_conf}(s,i,j,k) = \sum_{n=1}^{N_{kpts}} BCE(\delta(V_n > 0), p_{kpts}^n)
@@ -349,119 +345,118 @@ $p_{kpts}^n=$ predicted confidence for n\textsuperscript{th} keypoint \parencite
 \subsubsection{Keypoint RCNN}
 \label{subsubsec:training-rcnn}
 
-The Keypoint RCNN training is done on Jupyter Notebook directly using the PyTorch framework as well.
-Before starting the training process, we also need to convert the dataset format first.
-Actually, this format is almost the same as the YOLO format (each image has its own label), but the difference lies in the bounding box.
-Where the format of the bounding-box is the top left point and the bottom right point. We can obtain bottom right point by adding bounding box width to x coordinate and its height to y coordinate.
+Pelatihan Keypoint RCNN dilakukan langsung pada \textit{Jupyter Notebook} menggunakan \textit{framework} PyTorch juga.
+Sebelum memulai proses pelatihan, kita perlu mengonversi format dataset terlebih dahulu.
+Sebenarnya, format Keypoint RCNN hampir sama dengan format YOLO (setiap gambar memiliki label sendiri), tetapi perbedaannya terletak pada \textit{bounding box}.
+Di mana format \textit{bounding box} adalah titik kiri atas dan titik kanan bawah. Kita dapat memperoleh titik kanan bawah dengan menambahkan lebar ke koordinat x dan tingginya ke koordinat y.
 
-The training process starts with loading our dataset and specifying the augmentation technique we are using. We use \emph{albumentations} library from Python for augmenting our dataset.
-We apply random brightness, contrast, and rotation.
-Before we declare RCNN model using torchvision library, we need anchors that will be an input argument. 
-By default, the \emph{AnchorGenerator} class in PyTorch has 3 different sizes (128, 256, 512) and 3 different aspect ratios (0.5, 1.0, 2.0).
-We have extended those parameters, \verb|sizes| to (32, 64, 128, 256, 512) which means that anchor boxes with different base sizes will be generated. These base sizes represent the approximate dimensions (in pixels) of the objects that the algorithm will try to detect.
-The anchor generator will create anchors with these base sizes at different positions in the image.
-The \verb|aspect_ratios| specifies the aspect ratios of the anchor boxes. Aspect ratio refers to the ratio of the width to the height of the anchor box.
-The \verb|aspect_ratios| argument is set to (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0), which means anchor boxes with these aspect ratios will be generated. By combining different base sizes and aspect ratios, the anchor generator can produce a diverse set of anchor boxes.
-These anchor boxes are later compared to the ground truth bounding boxes of objects in the training data to determine the location of objects.
-Note that, \verb|num classes| argument is set to two because the first class is background and object is the second class.
-In this training, we use SGD optimizer with learning rate 10\textsuperscript{-3}, batch size 3, and weight decay of 5\textsuperscript{-4} for 50 epochs.
+Proses pelatihan dimulai dengan memuat dataset dan menentukan teknik augmentasi yang akan gunakan. Kami menggunakan \emph{albumentations library} dari Python untuk mengaugmentasi dataset kami.
+Kami menerapkan augmentasi kecerahan, kontras, dan rotasi.
+Sebelum kami mendeklarasikan model RCNN menggunakan \textit{torchvision library}, kita juga perlu mendifinisikan anchor yang akan menjadi argumen input.
+Pada dasarnya, \emph{AnchorGenerator class} dalam PyTorch memiliki 3 ukuran yang berbeda (128, 256, 512) dan 3 rasio aspek yang berbeda (0.5, 1.0, 2.0).
+Kami telah memperluas parameter tersebut, \verb|sizes| menjadi (32, 64, 128, 256, 512), yang berarti akan dihasilkan kotak anchor dengan ukuran yang berbeda-beda. Ukuran ini mewakili dimensi perkiraan (dalam piksel) dari objek yang akan diidentifikasi oleh algoritma.
+Argumen \verb|aspect_ratios| menentukan rasio aspek kotak anchor. Hal ini mengacu pada rasio lebar terhadap tinggi kotak anchor.
+Argumen \verb|aspect_ratios| diatur menjadi (0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0), yang berarti anchor dengan rasio aspek ini akan dihasilkan. Dengan mengkombinasikan 2 argumen tersebut, dihasilkan anchor yang beragam.
+Kotak-kotak anchor ini kemudian dibandingkan dengan \textit{ground truth bounding box} dari objek dalam data pelatihan untuk menentukan lokasi objek.
+Perhatikan bahwa argumen \verb|num classes| diatur menjadi dua karena kelas pertama adalah latar belakang (background) dan objeknya adalah kelas kedua.
+Dalam pelatihan ini, kami menggunakan \textit{optimizer} SGD dengan \textit{learning rate} 10\textsuperscript{-3}, ukuran batch 3, dan \textit{weight decay} 5\textsuperscript{-4} untuk 50 epoch.
 
-The total loss for Keypoint RCNN is a sum of loss for classification, bounding box, and keypoints as seen in Equation \ref{eq:overall-loss-rcnn}.
-Keypoint RCNN use Cross-Entropy Loss to compute classification loss and keypoints loss, also smooth L1 loss for bounding-box. 
-For keypoint detection, a common loss function used is the Mean Squared Error (MSE) loss or its variant, the Smooth L1 loss. These loss functions directly compare the predicted coordinates of the keypoints with the ground truth coordinates.
-However, Keypoint RCNN uses Cross Entropy loss to compute keypoints loss. This loss function is primarily used for multi-class classification problems. It expects the input to be raw logits or probabilities for each class and requires the target labels to be class indices. Therefore, the keypoint task is treated as a multi-class classification problem, where each keypoint is considered a separate class.
+Total \textit{loss} untuk Keypoint RCNN adalah jumlah \textit{loss} untuk \textit{classification}, \textit{bounding box}, dan \textit{keypoint} seperti yang terlihat dalam Persamaan \ref{eq:overall-loss-rcnn}.
+Keypoint RCNN menggunakan \textit{Cross-Entropy Loss} untuk menghitung \textit{classification loss} dan \textit{keypoints loss}, serta \textit{smooth L1 loss} untuk \textit{bounding box}.
+Untuk deteksi \textit{keypoint}, fungsi \textit{loss} yang digunakan adalah \textit{Mean Squared Error} (MSE) loss atau varian lainnya, yaitu \textit{smooth L1 loss}. Fungsi-fungsi \textit{loss} ini membandingkan langsung koordinat yang diprediksi dari \textit{keypoint} dengan koordinat \textit{ground truth}.
+Namun, Keypoint RCNN menggunakan \textit{Cross-Entropy Loss} untuk menghitung \textit{keypoint loss}. Fungsi \textit{loss} ini biasanya digunakan untuk masalah klasifikasi multi-kelas. 
+Fungsi ini mengharapkan input berupa probabilitas mentah untuk setiap kelas dan memerlukan label target dalam bentuk indeks kelas. Oleh karena itu, tugas \textit{keypoint} diperlakukan sebagai masalah klasifikasi multi-kelas, di mana setiap \textit{keypoint} dianggap sebagai kelas terpisah.
 \begin{equation}
   \label{eq:overall-loss-rcnn}
   \mathcal{L}_{total} = \sum (\mathcal{L}_{cls} + \mathcal{L}_{box} + \mathcal{L}_{kpts})
 \end{equation}
 
-\subsection{Finding the Best Model for Humanoid Robot Pose Estimation}
+\subsection{Mencari Model Terbaik untuk Estimasi Pose Robot \textit{Humanoid}}
 \label{subsec:finding-best-model-humanoid-robot}
 
-After retraining 3 models on Section \ref{subsec:training-robot}, we try to find the best one for our case. We compare them based on \emph{AP} (Average Precision), \emph{AR} (Average Recall),
-real detection result, and inference time on devices with limited computing capabilities (e.g. NUC i5).
-The comparison table and real detection result of those models are in Chapter \ref{chap:resultsandiscussion}.
+Setelah melatih ulang 3 model pada Bagian \ref{subsec:training-robot}, kami mencoba mencari yang terbaik untuk kasus kami. Kami membandingkannya berdasarkan \emph{AP} (\textit{Average Precision}),
+\emph{AR} (\textit{Average Recall}), hasil deteksi, dan waktu inferensi pada perangkat dengan kemampuan komputasi terbatas (misalnya NUC i5).
+Tabel perbandingan dan hasil deteksi nyata dari model-model tersebut ada di Bab \ref{chap:resultsandiscussion}.
 \lstinputlisting[
   language=Python,
-  caption={Time difference Pseudocode.},
+  caption={Pseudocode untuk Mendapatkan Perbedaan Waktu.},
   label={lst:time-difference}
 ]{program/time-difference.txt}
-To know the time that it takes for the model to do the detection, we just need to subtract the time before and after the model does keypoint detection like Pseudocode \ref{lst:time-difference}.
-In this pseudocode, the \verb|get_current_time()| function is used as a placeholder to represent the retrieval of the current time. The keypoint detection process is performed in the indicated section.
-The \verb|elapsed_time| variable is calculated by subtracting the starting time from the current time. Finally, the elapsed time is printed with an appropriate message.
+Untuk mengetahui waktu yang dibutuhkan oleh model untuk melakukan deteksi, kita perlu mengurangi waktu sebelum dan setelah model melakukan deteksi \textit{keypoint} seperti yang ditunjukkan dalam Pseudocode \ref{lst:time-difference}.
+Dalam pseudocode ini, fungsi \verb|get_current_time()| digunakan untuk memperoleh waktu saat ini. Proses deteksi \textit{keypoint} dilakukan pada bagian yang ditunjukkan.
+Variabel \verb|elapsed_time| dihitung dengan mengurangi waktu mulai dari waktu saat ini. Akhirnya, waktu inferensi dicetak dengan pesan yang sesuai.
 
-We also attempt converting our models from PyTorch Model to OpenVINO in order to speed up the time inference. Before that, we convert it to ONNX first like Figure \ref{fig:pytorch-to-openvino}.
-At first, we must ensure that the model is in inference mode by calling \emph{eval} function in Python code.
-Next, we create that dummy input variable. The call to \emph{torch.onnx.export} function runs the model once to trace its execution and then exports the traced model to the specified file.
-The resulting onnx file contains a binary protocol buffer which contains both the network structure and parameters of the model exported.
-After that, we use Model Optimizer to convert the ONNX model to OpenVINO IR with FP16 precision. To install Model Optimizer in Python is pretty simple, just run
-\emph{pip install openvino-dev} in Terminal and to verify the package is properly installed, we run the command \emph{mo -h}. We will see the help message for Model Optimizer if installation finished successfully.
-After running that command, there is a directory that contains three files with \emph{bin}, \emph{mapping}, and \emph{xml} extension.
-If we want to run OpenVINO IR Model in OpenVINO Runtime, we must make sure that the path for model must contain three files earlier.
+Kami juga mencoba mengonversi model kami dari Model PyTorch ke OpenVINO untuk mempercepat waktu inferensi. Sebelum itu, kami mengonversinya ke ONNX terlebih dahulu seperti yang terlihat pada Gambar \ref{fig:pytorch-to-openvino}.
+Pertama, kami harus memastikan bahwa model berada dalam mode inferensi dengan memanggil fungsi \emph{eval} dalam kode Python.
+Selanjutnya, kami membuat variabel input \textit{dummy}. Pemanggilan fungsi \emph{torch.onnx.export} menjalankan model sekali untuk melacak jalannya eksekusi dan kemudian mengekspor model pada file yang ditentukan.
+File onnx yang dihasilkan berisi protokol buffer biner yang berisi struktur jaringan dan parameter model yang diekspor.
+Setelah itu, kami menggunakan Model \textit{Optimizer} untuk mengonversi model ONNX menjadi OpenVINO IR dengan presisi FP16. Untuk meng-\textit{instal} Model Optimizer di Python sangatlah sederhana, cukup menjalankan
+\emph{pip install openvino-dev} di Terminal dan untuk memverifikasi bahwa paket tersebut terinstal dengan benar dan jalankan perintah \emph{mo -h}. Jika instalasi selesai, kita akan melihat pesan dari Model Optimizer.
+Setelah menjalankan perintah tersebut, akan ada sebuah direktori yang berisi tiga file dengan ekstensi \emph{bin}, \emph{mapping}, dan \emph{xml}.
+Jika kita ingin menjalankan Model OpenVINO IR di OpenVINO Runtime, pastikan bahwa folder untuk memuat model tersebut mengandung tiga file yang telah disebutkan sebelumnya.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.4]{gambar/pytorch-onnx-openvino.jpg}
-  \caption{Flow of converting PyTorch Model to OpenVINO.}
+  \caption{Alur Mengkonversi Model PyTorch ke OpenVINO.}
   \label{fig:pytorch-to-openvino}
 \end{figure}
 
 
-\section{Choose Six Keypoints based on Humanoid Robot Keypoints}
+\section{Memilih Enam \textit{Keypoint} Berdasarkan \textit{Keypoint} Robot \textit{Humanoid}}
 \label{sec:choose-keypoints}
 
-The difference in numbers between human keypoints and robot keypoints makes us have to choose certain human's keypoints in order to make a comparison between them.
-Based on the results after testing, we chose Mediapipe for human and Keypoint RCNN for robot. Mediapipe provides 33 landmark keypoints for human and Keypoint RCNN only provides 6 keypoints.
-Therefore, we need to choose 6 human keypoint as shown in Pseudocode \ref{lst:choose-human-keypoints}.
-Note that, the name of the keypoints in the code corresponds to the name of the keypoints in the robot. First, we get all 33 keypoints. Then calculate the keypoint we want, such as the head keypoint which is located between the right and left eye.
-To obtain the eye landmarks, we can index \verb|landmark| variable according to Figure \ref{fig:mediapipe-landmark}, where the left eye is index 2 and the right eye is index 5. This also applies to other landmarks.
-The keypoint for the hands and feet is simply to select the wrists and ankles, where landmark[15] and landmark[16] are wrists, landmark[27] and landmark[28] are ankles.
-Lastly, the trunk keypoint is located between the shoulder and hip keypoint. The x coordinate is located in the middle of the hip. The y-coordinate, on the other hand, is located on 1/4 distance between the hip and the shoulder from below.
-First, we determine the midpoint between the shoulder and hip by individually calculating the coordinates of the right and left y axes, like Pseudocode \ref{lst:choose-human-keypoints} lines 19 and 21. In order to obtain 1/4 of the distance between the hip and the shoulder from below, we then compute the midpoint between the previous computation and the hip point as shown in lines 20, 22, and 24.
-After all of the computation, we arrange all keypoints in a single array.
+Perbedaan jumlah \textit{keypoint} antara manusia dan robot membuat kita harus memilih beberapa \textit{keypoint} tertentu pada manusia agar bisa dibandingkan nantinya.
+Kami memilih jumlah \textit{keypoint} sebanyak 6 karena mengikuti makalah \parencite{amini2021} yang mencoba untuk mendeteksi 6 \textit{keypoint} pada robot dan mendapatkan hasil yang memuaskan.
+Berdasarkan hasil pengujian, kami memilih Mediapipe untuk manusia dan Keypoint RCNN untuk robot. Mediapipe menghasilkan 33 \textit{keypoint} landmark untuk manusia, sementara Keypoint RCNN hanya menghasilkan 6 \textit{keypoint}.
+Oleh karena itu, kita perlu memilih 6 keypoint manusia seperti yang ditunjukkan dalam Pseudocode \ref{lst:choose-human-keypoints}.
+Perhatikan bahwa nama \textit{keypoint} dalam kode sesuai dengan nama keypoint pada robot. Pertama, kita mendapatkan semua 33 \textit{keypoint}. Kemudian menghitung \textit{keypoint} yang kita inginkan, seperti \textit{keypoint} kepala yang terletak di antara mata kanan dan kiri.
+Untuk mendapatkan landmark mata, kita dapat mengindeks variabel \verb|landmark| sesuai dengan Gambar \ref{fig:mediapipe-landmark}, di mana mata kiri memiliki indeks 2 dan mata kanan memiliki indeks 5. Hal ini juga berlaku untuk landmark lainnya.
+\textit{Keypoint} untuk tangan dan kaki diperoleh dengan memilih pergelangan tangan dan pergelangan kaki, di mana landmark[15] dan landmark[16] adalah pergelangan tangan, dan landmark[27] dan landmark[28] adalah pergelangan kaki.
+Terakhir, \textit{keypoint} badan terletak di antara \textit{keypoint} bahu dan pinggul. Koordinat x terletak di tengah pinggul. Koordinat y, di sisi lain, terletak pada jarak 1/4 antara pinggul dan bahu dari bawah.
+Pertama, kita menentukan titik tengah antara bahu dan pinggul dengan menghitung koordinat sumbu y kanan dan kiri secara individu, seperti yang ditunjukkan dalam Pseudocode \ref{lst:choose-human-keypoints} baris 19 dan 21. Untuk mendapatkan 1/4 jarak antara pinggul dan bahu dari bawah, kita kemudian menghitung titik tengah antara perhitungan sebelumnya dan titik pinggul seperti yang ditunjukkan pada baris 20, 22, dan 24.
+Setelah semua perhitungan selesai, kita menyusun semua \textit{keypoint} dalam sebuah array tunggal.
 
 \lstinputlisting[
   language={},
-  caption={Choose human keypoints.},
+  caption={Memilih \textit{Keypoint} Manusia.},
   label={lst:choose-human-keypoints}
 ]{program/choose-human-keypoints.txt}
 
-
-\section{Keypoint Normalization}
+\newpage
+\section{Normalisasi \textit{Keypoint}}
 \label{sec:keypoint-normalization}
 
-When we think about the problem, we see that there are many uncertainties to be addressed. For example, human and humanoid robot can differ in height, body shape, and location within an image: one subject (human or robot) may have been nearby the camera,
-while another may have been in the distance. In order to get an accurate outcome, each of these issues must be resolved.
-After choosing the keypoints, the model output for both human and robot is the coordinates of 6 keypoints. This information can be used to create a new keypoint coordinates starting from (0,0) in the image. This solves the problem of the subject appearing in different parts of the picture.
-
+Ketika memikirkan masalah ini, kami melihat bahwa ada banyak ketidakpastian yang perlu ditangani. Misalnya, manusia dan robot \textit{humanoid} dapat berbeda dalam hal tinggi badan, bentuk tubuh, dan lokasi dalam sebuah gambar, misal suatu subjek (manusia atau robot) mungkin berada dekat dengan kamera dan yang lain mungkin berada di kejauhan.
+Untuk mendapatkan hasil yang akurat, setiap masalah ini harus diatasi.
+Setelah memilih \textit{keypoint}, output model untuk manusia dan robot adalah koordinat dari 6 \textit{keypoint}. Informasi ini dapat digunakan untuk membuat koordinat \textit{keypoint} baru yang dimulai dari (0,0) dalam gambar. Hal ini memecahkan masalah subjek yang muncul di bagian yang berbeda dalam gambar.
 \lstinputlisting[
   language={},
-  caption={Get New Keypoints.},
+  caption={Mendapatkan \textit{Keypoint} Baru.},
   label={lst:new-keypoints}
   ]{program/bbox.txt}
 
-In Pseudocode \ref{lst:new-keypoints}, the code is structured into two functions: \verb|get_min_point| and \verb|get_| \verb|new_coords|. The \verb|get_min_point| function takes an array of keypoints coordinates as input with shape (6,2)
-and iterates through each item in the array. It keeps track of the minimum x and y values encountered during the iteration and returns an array containing the minimum x and y coordinates.
-The \verb|get_new_coords| function takes the keypoint coordinates array and \verb|min_point| (minimum x and y coordinates) from the previous calculation as input. It iterates through each item and subtracts the corresponding minimum x and y values from each coordinate. The updated coords array is returned.
+Pada Pseudocode \ref{lst:new-keypoints}, dalam kode tersebut terdapat dua fungsi: \verb|get_min_point| dan \verb|get_new_coords|. Fungsi \verb|get_min_point| menerima input berupa array koordinat \textit{keypoint} dengan bentuk (6,2) dan melakukan iterasi melalui pada tiap item dalam array tersebut.
+Fungsi ini melacak nilai minimum x dan y yang ditemui selama iterasi dan mengembalikan array yang berisi koordinat minimum x dan y.
+Fungsi \verb|get_new_coords| menerima input berupa array koordinat \textit{keypoint} dan \verb|min_point| (koordinat minimum x dan y) dari perhitungan sebelumnya. Fungsi ini melakukan iterasi pada setiap item dan mengurangkannya dengan nilai minimum x dan y dari setiap koordinat dan mengembalikan hasilnya.
 
-We further normalized the resulting keypoints coordinates by performing L2 normalization in order to transform it into a unit vector as shown in Figure \ref{fig:transforming-into-unit-vector}.
-This means we are ignoring the size of the picture, but keeping in account the direction of the vector, created by the pose inside of that image.
-To calculate the L2 normalization for an individual point is to take the square root of the sum of the squares of its coordinates. This calculation resulting the magnitude or length of the vector formed by the coordinates of the point.
-Next step is dividing each coordinate by the length of the vector. This step ensures that the resulting normalized point lies on the unit circle. This normalization process scales the coordinates proportionally while preserving the direction of the vector. Moreover, it will optimize using NumPy library so it can compute multiple points simultaneously.
+Kami juga melakukan normalisasi pada \textit{keypoint} yang dihasilkan menggunakan normalisasi L2 untuk mengubahnya menjadi vektor satuan seperti yang ditunjukkan pada Gambar \ref{fig:transforming-into-unit-vector}. Hal ini berarti kami mengabaikan ukuran gambar, namun tetap mempertimbangkan arah vektor yang dibentuk oleh pose di dalam gambar tersebut.
+Untuk menghitung normalisasi L2, kita gunakan rumus akar kuadrat dari jumlah kuadrat koordinatnya. Perhitungan ini menghasilkan panjang vektor koordinat titik tersebut.
+Langkah berikutnya adalah membagi setiap koordinat dengan panjang vektor. Proses normalisasi ini mengubah skala koordinat secara proporsional sambil tetap mempertahankan arah vektor. Selain itu, kita akan mengoptimasi proses tersebut menggunakan \textit{library} NumPy agar dapat menghitung beberapa titik secara simultan.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[scale=0.7]{gambar/transform-to-unit-vector.png}
-  \caption{Transforming into Unit Vector.}
+  \includegraphics[scale=0.65]{gambar/transform-to-unit-vector.png}
+  \caption{Melakukan Transformasi menjadi Vektor Satuan.}
   \label{fig:transforming-into-unit-vector}
 \end{figure}
 
-\section{Comparing Human Keypoints and Robot Keypoints}
+\section{Membandingkan \textit{Keypoint} Manusia dan \textit{Keypoint} Robot}
 \label{sec:comparing-keypoints}
 
-Now that we have standardized the pose vectors, it is time to choose a similarity measure. We chose cosine similarity for this particular instance, mainly because we are working with vectors and performing a few calculations detailed below to arrive at a Euclidean distance that can be interpreted as a cosine distance.
-The cosine similarity ranges from -1 to 1, with 1 indicating identical poses or vectors are in the same direction, 0 indicating no similarity or vectors are nearly orthogonal, and -1 indicating completely opposite poses or opposite direction. The cosine distance, on the other hand, is a dissimilarity measure that ranges from 0 to 2.
-Using Equation \ref{eq:euclideandistance} scales the values to the range of 0 to 2, making it easier to interpret the results. A larger value implies a greater dissimilarity between poses. In that equation, Fxy and Gxy are two pose vectors to be compared after L2 normalization. Moreover, Fxy and Gxy contain only x and y positions for each of the 6 keypoints, it does not include confidence scores.
+Setelah kita melakukan standarisasi vektor pose, saatnya memilih metode pengukuran kesamaan. Kami memilih kesamaan kosinus karena kami bekerja dengan vektor dan melakukan beberapa perhitungan lanjutan untuk mendapatkan jarak Euclidean yang dapat diinterpretasikan sebagai jarak kosinus (\textit{cosine distance}).
+Kesamaan kosinus berkisar dari -1 hingga 1, dengan nilai 1 menunjukkan pose atau vektor yang identik atau berada dalam arah yang sama, nilai 0 menunjukkan ketidakmiripan atau vektor yang hampir ortogonal, dan nilai -1 menunjukkan pose dengan arah yang berlawanan. Sementara itu, jarak kosinus (cosine distance) adalah ukuran ketidakmiripan yang berkisar dari 0 hingga 2.
+Menggunakan Persamaan \ref{eq:euclideandistance} akan mengubah skala nilai menjadi rentang 0 hingga 2, sehingga lebih mudah untuk menginterpretasikan hasilnya. Nilai yang lebih besar menunjukkan ketidakmiripan yang lebih besar antara pose. Dalam persamaan tersebut, Fxy dan Gxy adalah dua vektor pose yang akan dibandingkan setelah dilakukan normalisasi L2. Selain itu, Fxy dan Gxy hanya berisi posisi x dan y untuk masing-masing dari 6 keypoints, tidak termasuk \textit{confidence scores}.
 
 \begin{equation}
   \label{eq:cosinesimilarity}
@@ -474,9 +469,9 @@ Using Equation \ref{eq:euclideandistance} scales the values to the range of 0 to
 \end{equation}
 
 
-\section{Pose Similarity Result}
+\section{Hasil Perbanding Pose}
 \label{sec:pose-similarity-result}
 
-The result of pose similarity is in percentages with a range of 0 to 100. A higher score indicates a more similar position between the human and robot, and vice versa.
-In order to get it, we multiply the cosine distance result from Section \ref{sec:comparing-keypoints} by 100 and subtract the result from 100.
-After getting each result of pose similarity, we take a mean and display it in the left top video. This video will be generated after detecting and comparing all poses.
+Hasil perbandingan pose dinyatakan dalam persentase dengan rentang 0 hingga 100. Skor yang lebih tinggi menunjukkan posisi yang lebih mirip diantara manusia dan robot, dan juga sebaliknya.
+Untuk mendapatkannya, kita mengalikan hasil \textit{cosine distance} dari Bagian \ref{sec:comparing-keypoints} dengan 100 dan mengurangkan hasil tersebut dari 100.
+Setelah mendapatkan hasilnya, kita mengambil rata-rata dan menampilkannya di video di sudut kiri atas. Video ini akan dihasilkan setelah mendeteksi dan membandingkan semua pose.
