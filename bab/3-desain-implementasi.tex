@@ -99,7 +99,7 @@ Hubungan antar node ini dapat dilihat melalui grafik rqt atau \textit{ROS2 clien
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.62]{gambar/rqt_without_akushon.png}
-  \caption{Hubungan Antar \textit{Node} pada mode \textit{RECORD}.}
+  \caption{Hubungan Antar \textit{Node} pada Mode \textit{RECORD}.}
   \label{fig:relation-node-record-mode}
 \end{figure}
 
@@ -406,8 +406,9 @@ Jika kita ingin menjalankan Model OpenVINO IR di OpenVINO Runtime, pastikan bahw
 \section{Memilih Enam \textit{Keypoint} Berdasarkan \textit{Keypoint} Robot \textit{Humanoid}}
 \label{sec:choose-keypoints}
 
-Perbedaan jumlah \textit{keypoint} antara manusia dan robot membuat kita harus memilih beberapa \textit{keypoint} tertentu pada manusia agar bisa dibandingkan nantinya.
-Kami memilih jumlah \textit{keypoint} sebanyak 6 karena mengikuti makalah \parencite{amini2021} yang mencoba untuk mendeteksi 6 \textit{keypoint} pada robot dan mendapatkan hasil yang memuaskan.
+Perbedaan jumlah \textit{keypoint} yang dihasilkan oleh model antara manusia dan robot membuat kita harus memilih beberapa \textit{keypoint} tertentu pada manusia agar dapat dibandingkan nantinya.
+Kami memilih jumlah \textit{keypoint} sebanyak 6 karena mengikuti makalah \parencite{amini2021} yang mencoba untuk mendeteksi 6 \textit{keypoint} pada robot \textit{humanoid} dan mendapatkan hasil yang cukup memuaskan.
+Jika kedepannya, jumlah \textit{keypoint} pada robot yang dapat dideteksi oleh model bertambah, maka kita juga akan memilih \textit{keypoint} manusia berdasarkan jumlah tersebut. 
 Berdasarkan hasil pengujian, kami memilih Mediapipe untuk manusia dan Keypoint RCNN untuk robot. Mediapipe menghasilkan 33 \textit{keypoint} landmark untuk manusia, sementara Keypoint RCNN hanya menghasilkan 6 \textit{keypoint}.
 Oleh karena itu, kita perlu memilih 6 keypoint manusia seperti yang ditunjukkan dalam Pseudocode \ref{lst:choose-human-keypoints}.
 Perhatikan bahwa nama \textit{keypoint} dalam kode sesuai dengan nama keypoint pada robot. Pertama, kita mendapatkan semua 33 \textit{keypoint}. Kemudian menghitung \textit{keypoint} yang kita inginkan, seperti \textit{keypoint} kepala yang terletak di antara mata kanan dan kiri.
@@ -447,7 +448,7 @@ Langkah berikutnya adalah membagi setiap koordinat dengan panjang vektor. Proses
 \begin{figure}[ht]
   \centering
   \includegraphics[scale=0.65]{gambar/transform-to-unit-vector.png}
-  \caption{Melakukan Transformasi menjadi Vektor Satuan.}
+  \caption{Melakukan Transformasi Menjadi Vektor Satuan.}
   \label{fig:transforming-into-unit-vector}
 \end{figure}
 
