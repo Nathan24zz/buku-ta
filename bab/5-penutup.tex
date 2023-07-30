@@ -11,13 +11,8 @@ Berdasarkan hasil pengujian yang telah dilakukan, penulis dapat menyimpulkan beb
 
 \begin{enumerate}[nolistsep]
 
-  \item Pembuatan dataset baru telah diselesaikan dengan mengkombinasikan HumanoidRobotPose dataset dan dataset milik kita sendiri
-        sehingga ukuran robot dalam dataset menjadi bervariasi (\textit{adult, teen, kid size}).
-        Sebagian besar penambahan adalah data dengan konfigurasi 1 robot tiap gambar dan ukuran \textit{large} (sesuai dengan COCO Dataset)
   \item RCNN Keypoint adalah metode yang mampu untuk mendeteksi pose robot \textit{humanoid} dengan 6 \textit{keypoint} karena mengungguli model lain,
         dengan hasil AP sebesar 0.879 dan AR sebesar 0.925 pada test set (kecuali untuk AP \textit{medium}).
-  \item RCNN Keypoint is capable and reliable for detecting humanoid robot with 6 keypoints because it outperforms other models in \emph{AP} and \emph{AR} results on the test set (except for AP medium)
-        and shows the best detection results although it can not be performed in real-time even after converting to OpenVINO.
   \item Kesamaan Kosinus merupakan metode yang cocok untuk membandingkan pose robot dan manusia karena hasilnya akan lebih tinggi
         ketika manusia melakukan gerakan yang lebih menyerupai gerakan robot dan hasilnya akan lebih rendah ketika gerakan manusia tidak semirip dengan gerakan robot.
 
